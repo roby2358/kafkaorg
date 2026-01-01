@@ -1,0 +1,64 @@
+Priority:  100
+Status: ToDo
+ID: hello-guh9
+Get Kafka running and implement a hello -> world implementation
+---
+Priority:   95
+Status: ToDo
+ID: ui-nccu
+Research and set up UI solution for monitoring messages and managing agents
+---
+Priority:   90
+Status: ToDo
+ID: infra-4uwn
+Set up Kafka infrastructure and basic topic structure
+---
+Priority:   90
+Status: ToDo
+ID: phase1-gpj3
+Design and implement basic agent that can consume/produce to Kafka topics
+---
+Priority:   90
+Status: ToDo
+ID: arch-wx9z
+Define message format schema (JSON structure for agent communication)
+---
+Priority:   90
+Status: ToDo
+ID: infra-frrm
+Set up PostgreSQL database for organization state
+---
+Priority:   80
+Status: ToDo
+ID: security-xwxp
+Design security model for executing dynamically generated code
+---
+Priority:   70
+Status: ToDo
+ID: phase2-3ntk
+Implement meta-agent for topic creation and agent management
+---
+Priority:   70
+Status: ToDo
+ID: arch-fdk7
+Design agent registry/discovery mechanism
+---
+Priority:   60
+Status: ToDo
+ID: arch-rzwe
+Resolve agent lifecycle: long-lived processes vs event-driven functions
+---
+Priority:   60
+Status: ToDo
+ID: arch-dtfa
+Design relationship between LangGraph workflows and Kafka topics
+---
+Priority:   50
+Status: ToDo
+ID: phase3-cauj
+Implement code generation framework for agent tools
+---
+Priority:   50
+Status: ToDo
+ID: phase3-k5kh
+Build sandboxed execution environment for generated code
