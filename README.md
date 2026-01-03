@@ -49,6 +49,16 @@ Once running, services are accessible from the host at:
 
 - **Kafka**: `localhost:9092`
 
+## Running the Backend
+
+Start the FastAPI backend server:
+
+```bash
+uv run go
+```
+
+The server will start at `http://localhost:8821` with auto-reload enabled for development.
+
 ## Development
 
 You can develop your web app on the host machine and connect to these services using the endpoints above. The services run in the container but are accessible from your local development environment.

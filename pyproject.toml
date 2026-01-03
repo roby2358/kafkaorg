@@ -12,10 +12,12 @@ dependencies = [
     "uvicorn[standard]>=0.32.0",
     "langchain>=0.3.0",
     "langgraph>=0.2.0",
+    "sqlalchemy>=2.0.0",
+    "psycopg2-binary>=2.9.0",
 ]
 
 [project.scripts]
-kafkaorg-dev = "kafkaorg.__main__:main"
+go = "kafkaorg.__main__:main"
 
 [tool.uv]
 package = true

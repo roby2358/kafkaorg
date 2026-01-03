@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kafkaorg - Sign Up</title>
+    <link rel="stylesheet" href="/static/css/index.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Sign Up</h1>
+        <p>Create a new account to get started.</p>
+        
+        <form id="signup-form">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="button-group">
+                <button type="submit" class="primary">Sign Up</button>
+                <button type="button" class="secondary" onclick="window.location.href='/'">Cancel</button>
+            </div>
+            <div id="error" class="error" style="display: none;"></div>
+            <div id="success" class="success" style="display: none;"></div>
+        </form>
+    </div>
+    
+    <script>
+        // Pre-fill username from query parameter if present
+        const urlParams = new URLSearchParams(window.location.search);
+        const usernameParam = urlParams.get('username');
+        if (usernameParam) {
+            document.getElementById('username').value = usernameParam;
+        }
+        
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const name = document.getElementById('name').value;
+            const errorDiv = document.getElementById('error');
+            const successDiv = document.getElementById('success');
+            
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username: username, name: name })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    errorDiv.textContent = errorData.detail || 'An error occurred. Please try again.';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+                
+                const data = await response.json();
+                successDiv.textContent = `Account created successfully! Welcome, ${data.user.name}!`;
+                successDiv.style.display = 'block';
+                
+                // Redirect to home page after 2 seconds
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+            } catch (error) {
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

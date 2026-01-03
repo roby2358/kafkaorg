@@ -1,7 +1,7 @@
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV KAFKA_VERSION=3.7.0
+ENV KAFKA_VERSION=3.6.1
 ENV SCALA_VERSION=2.13
 ENV KAFKA_HOME=/opt/kafka
 ENV PATH="${KAFKA_HOME}/bin:${PATH}"
@@ -20,10 +20,12 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Kafka
-RUN wget -q https://downloads.apache.org/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz \
-    && tar -xzf kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz -C /opt \
-    && mv /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION} ${KAFKA_HOME} \
-    && rm kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz
+RUN set -e && \
+    (wget --progress=bar:force -O kafka.tgz https://downloads.apache.org/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz || \
+     wget --progress=bar:force -O kafka.tgz https://archive.apache.org/dist/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz) && \
+    tar -xzf kafka.tgz -C /opt && \
+    mv /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION} ${KAFKA_HOME} && \
+    rm kafka.tgz
 
 # Configure Kafka KRaft mode
 RUN mkdir -p /tmp/kafka-logs && \

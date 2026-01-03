@@ -4,35 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kafkaorg - Hello World</title>
-    <style>
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-            background: #f5f5f5;
-        }
-        .container {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-            margin-top: 0;
-        }
-        p {
-            color: #666;
-            line-height: 1.6;
-        }
-    </style>
+    <link rel="stylesheet" href="/static/css/index.css">
 </head>
 <body>
     <div class="container">
         <h1>Hello World!</h1>
         <p>Welcome to Kafkaorg - your playground for orchestrating AI agents with Kafka, LangGraph, and LangChain.</p>
         <p>This page is being served by FastAPI from the Python backend.</p>
+        
+        <div class="signin-form">
+            <form id="signin-form">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <button type="submit">Sign In</button>
+            </form>
+            <div id="greeting" class="greeting" style="display: none;"></div>
+            <div id="error" class="error" style="display: none;"></div>
+        </div>
     </div>
+    
+    <script src="/static/js/index.js"></script>
 </body>
 </html>

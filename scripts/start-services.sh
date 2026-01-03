@@ -26,15 +26,20 @@ shutdown() {
 trap shutdown SIGTERM SIGINT
 
 # Initialize PostgreSQL data directory if needed
-if [ ! -d /var/lib/postgresql/14/main ]; then
-  echo "Initializing PostgreSQL data directory..."
+if [ ! -d /var/lib/postgresql/14/main ] || [ ! -f /var/lib/postgresql/14/main/postgresql.conf ]; then
+  if [ -d /var/lib/postgresql/14/main ]; then
+    echo "Data directory exists but postgresql.conf missing, reinitializing..."
+    rm -rf /var/lib/postgresql/14/main/*
+  else
+    echo "Initializing PostgreSQL data directory..."
+  fi
   sudo -u postgres /usr/lib/postgresql/14/bin/initdb -D /var/lib/postgresql/14/main
   echo "host all all 0.0.0.0/0 md5" >> /var/lib/postgresql/14/main/pg_hba.conf
   echo "listen_addresses='*'" >> /var/lib/postgresql/14/main/postgresql.conf
 fi
 
-# Start PostgreSQL
-sudo -u postgres /usr/lib/postgresql/14/bin/pg_ctl -D /var/lib/postgresql/14/main -l /var/log/postgresql.log start
+# Start PostgreSQL (without log file to use default stderr logging)
+sudo -u postgres /usr/lib/postgresql/14/bin/pg_ctl -D /var/lib/postgresql/14/main -w start
 
 # Wait for PostgreSQL to be ready
 until pg_isready -U postgres; do
