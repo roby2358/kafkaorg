@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  kafkaorg:
+    build: .
+    ports:
+      - "5432:5432"  # PostgreSQL
+      - "9092:9092"  # Kafka
+      - "9093:9093"  # Kafka Controller
+    environment:
+      - KAFKA_ADVERTISED_HOST=localhost
+    volumes:
+      - kafkaorg-data:/var/lib/postgresql/14/main
+      - kafkaorg-kafka-logs:/tmp/kafka-logs
+      - kafkaorg-kafka-metadata:/tmp/kafka-logs-metadata
+
+volumes:
+  kafkaorg-data:
+  kafkaorg-kafka-logs:
+  kafkaorg-kafka-metadata:
