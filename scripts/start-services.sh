@@ -1,12 +1,20 @@
 #!/bin/bash
 set -e
 
-# Track Kafka process ID for graceful shutdown
+# Track process IDs for graceful shutdown
 KAFKA_PID=""
+SERVER_PID=""
 
 # Graceful shutdown handler
 shutdown() {
   echo "Received shutdown signal, stopping services..."
+  
+  # Stop Express.js server if running
+  if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then
+    echo "Stopping Express.js server..."
+    kill -TERM "$SERVER_PID" 2>/dev/null || true
+    wait "$SERVER_PID" 2>/dev/null || true
+  fi
   
   # Stop Kafka if running
   if [ -n "$KAFKA_PID" ] && kill -0 "$KAFKA_PID" 2>/dev/null; then
@@ -71,13 +79,26 @@ fi
 # Start Kafka in KRaft mode (background so we can track PID)
 ${KAFKA_HOME}/bin/kafka-server-start.sh ${KAFKA_HOME}/config/kraft/server.properties &
 KAFKA_PID=$!
+echo "Kafka started with PID $KAFKA_PID"
 
-# Wait for Kafka process to exit
-wait $KAFKA_PID
-KAFKA_EXIT_CODE=$?
+# Set DATABASE_URL for Express.js (everything runs in same container, so use localhost)
+export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/kafkaorg"
 
-# If Kafka exited (not due to signal trap), clean up PostgreSQL
-echo "Kafka exited with code $KAFKA_EXIT_CODE, stopping PostgreSQL..."
-sudo -u postgres /usr/lib/postgresql/14/bin/pg_ctl -D /var/lib/postgresql/14/main stop -m fast || true
+# PORT is set in Dockerfile (8822 for container, defaults to 8821 for local dev)
+SERVER_PORT=${PORT:-8821}
 
-exit $KAFKA_EXIT_CODE
+# Start Express.js server
+cd /app
+echo "Starting Express.js server on port $SERVER_PORT..."
+node dist/index.js &
+SERVER_PID=$!
+echo "Express.js server started with PID $SERVER_PID on port $SERVER_PORT"
+
+# Wait for any process to exit
+wait -n
+EXIT_CODE=$?
+
+# If any process exited (not due to signal trap), clean up
+echo "A service exited with code $EXIT_CODE, stopping all services..."
+shutdown
+exit $EXIT_CODE

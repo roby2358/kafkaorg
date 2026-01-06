@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+*.tsbuildinfo
+
+# Development files
+.git/
+.gitignore
+.env
+.env.local
+.env.*.local
+
+# Documentation
+*.md
+!README.md
+
+# IDE
+.idea/
+.vscode/
+
+# Python (old code, can be removed after migration is verified)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+*.egg-info/
+
+# Project management
+pjpd/
+MANIFEST.md
+PRODUCT_NOTES.md
+DESIGN.md
+SPEC.md
+MIGRATION_PLAN.md
+MIGRATION_COMPLETE.md
+
+# Lock files are copied if they exist for reproducible builds
+
+# Test files
+test/
+tests/
+*.test.ts
+*.spec.ts

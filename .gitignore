@@ -11,3 +11,64 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+
+# Node.js
+node_modules/
+.pnpm-store/
+package-lock.json
+yarn.lock
+# Note: pnpm-lock.yaml should be committed for reproducible builds
+
+# Environment
+.env
+.env.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Prisma
+prisma/migrations/
+
+# Python (legacy - can remove after migration complete)
+uv.lock
+pyproject.toml
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Editor/IDE
+.vscode/
+*.swp
+*.swo
+*~
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# Docker
+# Note: .dockerignore, docker-compose.yml, and Dockerfile should be committed
+
+# Temporary files
+*.tmp
+*.temp
+.cache/

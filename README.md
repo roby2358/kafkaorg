@@ -17,18 +17,12 @@ Records in Kafka represent events in the system. Agents consume records (events)
 # Usage
 
 ## Prerequisites
-- Podman installed and running
-- `podman-compose` installed (or use `podman compose` if using Podman 4.0+)
+- Podman 5.7.0+ installed and running
 
 ## Starting Services
 
-Start PostgreSQL and Kafka services using podman-compose:
+Start PostgreSQL and Kafka services:
 
-```bash
-podman-compose up -d
-```
-
-Or with Podman 4.0+:
 ```bash
 podman compose up -d
 ```
@@ -42,6 +36,14 @@ This will:
 
 Once running, services are accessible from the host at:
 
+- **Web Server (Container)**: `http://localhost:8822`
+  - Main page: `http://localhost:8822/`
+  - Signup page: `http://localhost:8822/signup`
+  - API: `http://localhost:8822/api/*`
+
+- **Web Server (Local Dev)**: `http://localhost:8821`
+  - Runs when using `pnpm dev` for local development
+
 - **PostgreSQL**: `localhost:5432`
   - User: `postgres`
   - Password: `postgres`
@@ -49,33 +51,64 @@ Once running, services are accessible from the host at:
 
 - **Kafka**: `localhost:9092`
 
-## Running the Backend
+## Running Everything
 
-Start the FastAPI backend server:
+The container includes all services:
+- **PostgreSQL** - Database
+- **Kafka** - Message broker
+- **Express.js Web Server** - API and static file serving
+
+All services start automatically when the container starts. The web server is available at `http://localhost:8822`.
+
+## Local Development (Optional)
+
+If you want to develop the web server locally instead of in the container:
+
+### Prerequisites
+- Node.js 18+ installed
+- pnpm installed (`npm install -g pnpm`)
+
+### Setup
+
+1. Install dependencies:
+```bash
+pnpm install
+```
+
+2. Set up environment variables:
+```bash
+cp .env.example .env
+```
+Edit `.env` to point to the containerized database: `DATABASE_URL="postgresql://postgres:postgres@localhost:5432/kafkaorg"`
+
+3. Generate Prisma client:
+```bash
+pnpm prisma:generate
+```
+
+### Development
+
+Start the Express.js backend server:
 
 ```bash
-uv run go
+pnpm dev
 ```
 
 The server will start at `http://localhost:8821` with auto-reload enabled for development.
-
-## Development
-
-You can develop your web app on the host machine and connect to these services using the endpoints above. The services run in the container but are accessible from your local development environment.
 
 ## Managing the Container
 
 View logs:
 ```bash
-podman-compose logs -f
+podman compose logs -f
 ```
 
 Stop services:
 ```bash
-podman-compose down
+podman compose down
 ```
 
 Stop and remove volumes (clears data):
 ```bash
-podman-compose down -v
+podman compose down -v
 ```
