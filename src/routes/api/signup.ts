@@ -1,9 +1,9 @@
-import { Router, Request, Response } from 'express';
+import { Router, type IRouter, Request, Response } from 'express';
 import { prisma } from '../../db/client.js';
 import { validate } from '../../middleware/validation.js';
 import { signUpRequestSchema } from '../../types/requests.js';
 
-const router = Router();
+const router: IRouter = Router();
 
 router.post(
   '/signup',

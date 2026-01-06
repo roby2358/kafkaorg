@@ -56,7 +56,7 @@ COPY pnpm-lock.yaml* ./
 
 # Install dependencies
 RUN if [ -f pnpm-lock.yaml ]; then \
-      pnpm install --frozen-lockfile; \
+      pnpm install --no-frozen-lockfile || pnpm install; \
     else \
       pnpm install; \
     fi
