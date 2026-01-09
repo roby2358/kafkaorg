@@ -22,47 +22,43 @@ router.post(
       return;
     }
 
-    // Create conversation with timestamp description
-    const description = `Conversation started ${new Date().toISOString()}`;
-    const conversation = await prisma.conversation.create({
-      data: {
-        description,
-        topic: '', // temporary, will update after we have the ID
-        userId: user_id,
-      },
-    });
-
-    // Generate topic name
-    const topic = `conv-${conversation.id}`;
-
-    // Update conversation with topic
-    await prisma.conversation.update({
-      where: { id: conversation.id },
-      data: { topic },
-    });
-
-    // Create Kafka topic
-    await createTopic(topic);
-
-    // Create agent for this conversation
+    // Create agent first with temporary topic (will update with agent ID)
     const agent = await prisma.agent.create({
       data: {
-        name: `Agent for conversation ${conversation.id}`,
-        topic,
+        name: `Agent ${Date.now()}`,
+        topic: `agent-${Date.now()}`, // temporary, will update after we have the ID
+        model: 'anthropic/claude-haiku-4.5',
         active: true,
       },
     });
 
-    // Link agent to conversation
-    await prisma.conversation.update({
-      where: { id: conversation.id },
-      data: { agentId: agent.id },
+    // Update agent topic to use agent ID (agent-topic pair)
+    const topic = `agent-${agent.id}`;
+    const updatedAgent = await prisma.agent.update({
+      where: { id: agent.id },
+      data: { 
+        topic,
+        name: `conversation-agent-${agent.id}`,
+      },
     });
 
-    // Start the agent
-    const agentInstance = new Agent(agent.id, agent.name, topic);
+    // Create Kafka topic (agent owns the topic)
+    await createTopic(topic);
+
+    // Start the agent (agent starts the topic)
+    const agentInstance = new Agent(updatedAgent.id, updatedAgent.name, topic, updatedAgent.model);
     registerAgent(agentInstance);
     await agentInstance.start();
+
+    // Create conversation linked to agent (conversation subscribes to agent's topic)
+    const description = `Conversation started ${new Date().toISOString()}`;
+    const conversation = await prisma.conversation.create({
+      data: {
+        description,
+        userId: user_id,
+        agentId: updatedAgent.id,
+      },
+    });
 
     res.json({
       conversation: {
@@ -70,7 +66,7 @@ router.post(
         description,
         topic,
         user_id,
-        agent_id: agent.id,
+        agent_id: updatedAgent.id,
         created: conversation.created.toISOString(),
       },
     });
@@ -98,11 +94,16 @@ router.get(
       return;
     }
 
+    if (!conversation.agent) {
+      res.status(500).json({ error: 'Conversation missing agent' });
+      return;
+    }
+
     res.json({
       conversation: {
         id: conversation.id,
         description: conversation.description,
-        topic: conversation.topic,
+        topic: conversation.agent.topic,
         user_id: conversation.userId,
         agent_id: conversation.agentId,
         created: conversation.created.toISOString(),

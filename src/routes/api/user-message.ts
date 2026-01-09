@@ -22,9 +22,10 @@ router.post(
       return;
     }
 
-    // Look up conversation
+    // Look up conversation with agent (to get topic)
     const conversation = await prisma.conversation.findUnique({
       where: { id: conversation_id },
+      include: { agent: true },
     });
 
     if (!conversation) {
@@ -32,7 +33,12 @@ router.post(
       return;
     }
 
-    // Produce message to Kafka
+    if (!conversation.agent) {
+      res.status(500).json({ error: 'Conversation missing agent' });
+      return;
+    }
+
+    // Produce message to Kafka (using agent's topic)
     const producer = await getProducer();
     const kafkaMessage: ConversationMessage = {
       conversation_id,
@@ -43,7 +49,7 @@ router.post(
     };
 
     await producer.send({
-      topic: conversation.topic,
+      topic: conversation.agent.topic,
       messages: [{ value: JSON.stringify(kafkaMessage) }],
     });
 

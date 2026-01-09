@@ -22,8 +22,8 @@ export const SignInRequestSchema = registry.register(
 export const SignUpRequestSchema = registry.register(
   'SignUpRequest',
   z.object({
-    user_id: z.string().min(1).max(32).openapi({ example: 'roby' }),
-    name: z.string().min(1).openapi({ example: 'Roby' }),
+    user_id: z.string().min(1).max(32).openapi({ example: 'catblanketflower' }),
+    name: z.string().min(1).openapi({ example: "Singularity's Bounty" }),
   })
 );
 

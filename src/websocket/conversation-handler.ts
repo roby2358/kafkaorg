@@ -5,6 +5,7 @@ import { Server } from 'http';
 import { createConsumer } from '../kafka/client.js';
 import { ConversationMessage } from '../kafka/types.js';
 import { Consumer } from 'kafkajs';
+import { prisma } from '../db/client.js';
 
 interface ConversationConnection {
   ws: WebSocket;
@@ -25,8 +26,8 @@ export function setupWebSocket(server: Server): WebSocketServer {
       try {
         const message = JSON.parse(data.toString());
         
-        if (message.type === 'subscribe' && message.conversation_id && message.topic) {
-          await subscribeToConversation(ws, message.conversation_id, message.topic);
+        if (message.type === 'subscribe' && message.conversation_id) {
+          await subscribeToConversation(ws, message.conversation_id);
         }
       } catch (error) {
         console.error('WebSocket message error:', error);
@@ -48,10 +49,27 @@ export function setupWebSocket(server: Server): WebSocketServer {
   return wss;
 }
 
-async function subscribeToConversation(ws: WebSocket, conversationId: number, topic: string): Promise<void> {
+async function subscribeToConversation(ws: WebSocket, conversationId: number): Promise<void> {
   // Clean up any existing subscription
   await cleanupConnection(ws);
 
+  // Look up conversation with agent to get topic
+  const conversation = await prisma.conversation.findUnique({
+    where: { id: conversationId },
+    include: { agent: true },
+  });
+
+  if (!conversation) {
+    ws.send(JSON.stringify({ type: 'error', message: 'Conversation not found' }));
+    return;
+  }
+
+  if (!conversation.agent) {
+    ws.send(JSON.stringify({ type: 'error', message: 'Conversation missing agent' }));
+    return;
+  }
+
+  const topic = conversation.agent.topic;
   const groupId = `ws-${conversationId}-${Date.now()}`;
   const consumer = createConsumer(groupId);
 

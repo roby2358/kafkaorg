@@ -25,13 +25,14 @@ Stores user accounts.
 
 ### agents
 
-Stores AI agent definitions. Agent lifecycle is tied to its topic.
+Stores AI agent definitions. Agent owns and manages its Kafka topic (agent-topic pair).
 
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | id | SERIAL | PK, auto-increment | Unique agent identifier |
 | name | VARCHAR(256) | NOT NULL | Agent name |
-| topic | VARCHAR(256) | NOT NULL | Kafka topic this agent services |
+| topic | VARCHAR(256) | NOT NULL | Kafka topic this agent owns |
+| model | VARCHAR(256) | NOT NULL | AI model identifier (e.g., "anthropic/claude-haiku-4.5") |
 | created | TIMESTAMP | NOT NULL, DEFAULT now() | When the agent was created |
 | updated | TIMESTAMP | NOT NULL, auto-updated | Last modification time |
 | deleted | TIMESTAMP | NULLABLE | Soft delete timestamp |
@@ -39,15 +40,14 @@ Stores AI agent definitions. Agent lifecycle is tied to its topic.
 
 ### conversations
 
-Stores conversation sessions. Conversation owns the topic lifecycle.
+Stores conversation sessions. Conversation subscribes to an agent's topic.
 
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | id | SERIAL | PK, auto-increment | Unique conversation identifier |
 | description | VARCHAR(1024) | NOT NULL | Conversation description |
-| topic | VARCHAR(256) | NOT NULL | Kafka topic for this conversation |
 | user_id | VARCHAR(32) | FK → users, NULLABLE | User who owns the conversation |
-| agent_id | INT | FK → agents, NULLABLE | Agent who owns the conversation |
+| agent_id | INT | FK → agents, NOT NULL | Agent who owns the topic for this conversation |
 | created | TIMESTAMP | NOT NULL, DEFAULT now() | When the conversation was created |
 | updated | TIMESTAMP | NOT NULL, auto-updated | Last modification time |
 

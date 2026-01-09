@@ -22,6 +22,7 @@ model Agent {
   id            Int            @id @default(autoincrement())
   name          String         @db.VarChar(256)
   topic         String         @db.VarChar(256)
+  model         String         @db.VarChar(256)
   created       DateTime       @default(now())
   updated       DateTime       @updatedAt
   deleted       DateTime?
@@ -32,15 +33,14 @@ model Agent {
 }
 
 model Conversation {
-  id          Int      @id @default(autoincrement())
-  description String   @db.VarChar(1024)
-  topic       String   @db.VarChar(256)
-  userId      String?  @map("user_id") @db.VarChar(32)
-  agentId     Int?     @map("agent_id")
-  created     DateTime @default(now())
-  updated     DateTime @updatedAt
-  user        User?    @relation(fields: [userId], references: [id])
-  agent       Agent?   @relation(fields: [agentId], references: [id])
+  id          Int       @id @default(autoincrement())
+  description String    @db.VarChar(1024)
+  userId      String?   @map("user_id") @db.VarChar(32)
+  agentId     Int       @map("agent_id")
+  created     DateTime  @default(now())
+  updated     DateTime  @updatedAt
+  user        User?     @relation(fields: [userId], references: [id])
+  agent       Agent     @relation(fields: [agentId], references: [id])
 
   @@map("conversations")
 }

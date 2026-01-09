@@ -96,11 +96,10 @@ function connectWebSocket() {
     
     ws.onopen = () => {
         console.log('WebSocket connected');
-        // Subscribe to conversation topic
+        // Subscribe to conversation (topic will be looked up from agent)
         ws.send(JSON.stringify({
             type: 'subscribe',
-            conversation_id: conversationId,
-            topic: conversationTopic
+            conversation_id: conversationId
         }));
     };
     

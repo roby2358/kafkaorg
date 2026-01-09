@@ -8,7 +8,7 @@ import { OpenRouterAPI, ChatMessage } from '../agents/OpenRouterAPI.js';
 const SYSTEM_PROMPT = `You are an AI assistant operating within Kafkaorg, a Kafka-based orchestration platform for AI agents. This system enables dynamic, distributed agent ecosystems where agents communicate asynchronously through Kafka topics, react to events, and collaborate on complex tasks.
 
 Kafkaorg Architecture:
-Kafkaorg is built on Apache Kafka, a high-throughput, distributed event streaming platform. The system uses Kafka topics as communication channels where messages flow asynchronously between agents, users, and system components. Each conversation in Kafkaorg has its own dedicated Kafka topic, ensuring message ordering, durability, and replay capability. Messages are stored directly in Kafka's log-structured storage system, providing an immutable event log of all interactions.
+Kafkaorg is built on Apache Kafka, a high-throughput, distributed event streaming platform. The system uses Kafka topics as communication channels where messages flow asynchronously between agents, users, and system components. Each agent owns its own Kafka topic, and conversations subscribe to their agent's topic, ensuring message ordering, durability, and replay capability. Messages are stored directly in Kafka's log-structured storage system, providing an immutable event log of all interactions.
 
 Your Role and Responsibilities:
 You are a conversational AI assistant assigned to a specific conversation. Your primary responsibility is to engage in natural, helpful dialogue with users, understanding their needs and providing thoughtful, accurate responses. You operate within a distributed system where your responses are published to a Kafka topic, making them available to other system components, including web interfaces, other agents, and monitoring systems.
@@ -51,22 +51,24 @@ export class Agent {
   private agentId: number;
   private name: string;
   private topic: string;
+  private model: string;
   private consumer: Consumer | null = null;
   private running = false;
   private openRouter: OpenRouterAPI | null = null;
   private conversationHistory: ChatMessage[] = [];
   private lastMessageTime: Date | null = null;
 
-  constructor(agentId: number, name: string, topic: string) {
+  constructor(agentId: number, name: string, topic: string, model: string) {
     this.agentId = agentId;
     this.name = name;
     this.topic = topic;
+    this.model = model;
     
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
       console.warn(`Agent ${this.name}: OPENROUTER_API_KEY not set, agent will not be able to respond`);
     } else {
-      this.openRouter = new OpenRouterAPI(apiKey, 'anthropic/claude-haiku-4.5');
+      this.openRouter = new OpenRouterAPI(apiKey, this.model);
     }
   }
 
