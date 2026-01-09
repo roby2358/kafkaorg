@@ -16,12 +16,8 @@ Stores user accounts.
 |--------|------|-------------|-------------|
 | id | VARCHAR(32) | PK, UNIQUE | Username / unique user identifier |
 | name | VARCHAR(255) | NOT NULL | Display name |
-| created | TIMESTAMP | NOT NULL, DEFAULT now() | When the user was created |
+| created | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | When the user was created |
 | updated | TIMESTAMP | NOT NULL, auto-updated | Last modification time |
-
----
-
-## Planned Tables
 
 ### agents
 
@@ -33,7 +29,7 @@ Stores AI agent definitions. Agent owns and manages its Kafka topic (agent-topic
 | name | VARCHAR(256) | NOT NULL | Agent name |
 | topic | VARCHAR(256) | NOT NULL | Kafka topic this agent owns |
 | model | VARCHAR(256) | NOT NULL | AI model identifier (e.g., "anthropic/claude-haiku-4.5") |
-| created | TIMESTAMP | NOT NULL, DEFAULT now() | When the agent was created |
+| created | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | When the agent was created |
 | updated | TIMESTAMP | NOT NULL, auto-updated | Last modification time |
 | deleted | TIMESTAMP | NULLABLE | Soft delete timestamp |
 | active | BOOLEAN | NOT NULL | Whether the agent is active |
@@ -48,7 +44,7 @@ Stores conversation sessions. Conversation subscribes to an agent's topic.
 | description | VARCHAR(1024) | NOT NULL | Conversation description |
 | user_id | VARCHAR(32) | FK → users, NULLABLE | User who owns the conversation |
 | agent_id | INT | FK → agents, NOT NULL | Agent who owns the topic for this conversation |
-| created | TIMESTAMP | NOT NULL, DEFAULT now() | When the conversation was created |
+| created | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | When the conversation was created |
 | updated | TIMESTAMP | NOT NULL, auto-updated | Last modification time |
 
 ---
