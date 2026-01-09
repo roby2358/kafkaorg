@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import { createServer } from 'http';
 import path from 'path';
@@ -39,21 +40,30 @@ async function startServer(): Promise<void> {
   }
 }
 
-process.on('SIGINT', async () => {
+async function shutdown(): Promise<void> {
   console.log('\nShutting down...');
+  
+  // Close the HTTP server first to stop accepting new connections
+  await new Promise<void>((resolve) => {
+    server.close(() => {
+      console.log('HTTP server closed');
+      resolve();
+    });
+  });
+  
   await closeAllConnections();
   await stopAllAgents();
   await closeKafka();
   await closeDb();
+}
+
+process.on('SIGINT', async () => {
+  await shutdown();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-  console.log('\nShutting down...');
-  await closeAllConnections();
-  await stopAllAgents();
-  await closeKafka();
-  await closeDb();
+  await shutdown();
   process.exit(0);
 });
 
