@@ -9,10 +9,10 @@ router.post(
   '/signin',
   validate(signInRequestSchema),
   async (req: Request, res: Response): Promise<void> => {
-    const { username } = req.body;
+    const { user_id } = req.body;
 
     const user = await prisma.user.findUnique({
-      where: { username },
+      where: { id: user_id },
     });
 
     if (!user) {
@@ -24,7 +24,6 @@ router.post(
       found: true,
       user: {
         id: user.id,
-        username: user.username,
         name: user.name,
         created: user.created.toISOString(),
         updated: user.updated.toISOString(),

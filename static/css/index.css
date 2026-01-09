@@ -119,3 +119,47 @@ button.secondary {
 button.secondary:hover {
     background: #545b62;
 }
+
+/* Chat Interface */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 6rem);
+}
+
+.chat-area {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    margin-top: 1rem;
+    min-height: 0;
+}
+
+#dialogue {
+    flex: 1;
+    width: 100%;
+    padding: 1rem;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    background: #1a1a2e;
+    color: #e0e0ff;
+    border: none;
+    border-radius: 6px;
+    resize: none;
+    box-sizing: border-box;
+}
+
+.input-area {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.input-area input[type="text"] {
+    flex: 1;
+}
+
+.input-area button {
+    flex-shrink: 0;
+}

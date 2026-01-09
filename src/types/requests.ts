@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 export const signInRequestSchema = z.object({
-  username: z.string().min(1),
+  user_id: z.string().min(1).max(32),
 });
 
 export const signUpRequestSchema = z.object({
-  username: z.string().min(1),
+  user_id: z.string().min(1).max(32),
   name: z.string().min(1),
 });
 

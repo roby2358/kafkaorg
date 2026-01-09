@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kafkaorg - Conversation</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="stylesheet" href="/static/css/index.css">
+</head>
+<body>
+    <div class="container chat-container">
+        <h1 id="greeting">Loading...</h1>
+        
+        <div class="chat-area">
+            <textarea id="dialogue" readonly></textarea>
+            <div class="input-area">
+                <input type="text" id="user-input" placeholder="Type a message...">
+                <button id="send-btn">Send</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/conversation.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Inverted triangle (pointing down) -->
+  <polygon points="4,8 60,8 32,58" fill="#1a1a2e" stroke="#4a4a6a" stroke-width="2"/>
+  
+  <!-- Eye outline -->
+  <ellipse cx="32" cy="26" rx="14" ry="8" fill="none" stroke="#e0e0ff" stroke-width="2"/>
+  
+  <!-- Iris -->
+  <circle cx="32" cy="26" r="6" fill="#6366f1"/>
+  
+  <!-- Pupil -->
+  <circle cx="32" cy="26" r="3" fill="#1a1a2e"/>
+  
+  <!-- Eye highlight -->
+  <circle cx="34" cy="24" r="1.5" fill="#ffffff" opacity="0.8"/>
+</svg>

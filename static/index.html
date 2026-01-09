@@ -4,23 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kafkaorg - Hello World</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="stylesheet" href="/static/css/index.css">
 </head>
 <body>
     <div class="container">
         <h1>Hello World!</h1>
         <p>Welcome to Kafkaorg - your playground for orchestrating AI agents with Kafka, LangGraph, and LangChain.</p>
-        <p>This page is being served by FastAPI from the Python backend.</p>
+        <p>This page is being served by Express.js from the TypeScript backend.</p>
         
         <div class="signin-form">
             <form id="signin-form">
                 <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" name="username" required>
+                    <label for="user-id">User ID:</label>
+                    <input type="text" id="user-id" name="user_id" maxlength="32" required>
                 </div>
                 <button type="submit">Sign In</button>
             </form>
-            <div id="greeting" class="greeting" style="display: none;"></div>
             <div id="error" class="error" style="display: none;"></div>
         </div>
     </div>

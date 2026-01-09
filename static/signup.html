@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kafkaorg - Sign Up</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="stylesheet" href="/static/css/index.css">
 </head>
 <body>
@@ -13,11 +14,11 @@
         
         <form id="signup-form">
             <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
+                <label for="user-id">User ID:</label>
+                <input type="text" id="user-id" name="user_id" maxlength="32" required>
             </div>
             <div class="form-group">
-                <label for="name">Name:</label>
+                <label for="name">Display Name:</label>
                 <input type="text" id="name" name="name" required>
             </div>
             <div class="button-group">
@@ -30,18 +31,11 @@
     </div>
     
     <script>
-        // Pre-fill username from query parameter if present
-        const urlParams = new URLSearchParams(window.location.search);
-        const usernameParam = urlParams.get('username');
-        if (usernameParam) {
-            document.getElementById('username').value = usernameParam;
-        }
-        
         document.getElementById('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const username = document.getElementById('username').value;
-            const name = document.getElementById('name').value;
+            const userId = document.getElementById('user-id').value.trim();
+            const name = document.getElementById('name').value.trim();
             const errorDiv = document.getElementById('error');
             const successDiv = document.getElementById('success');
             
@@ -54,7 +48,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ username: username, name: name })
+                    body: JSON.stringify({ user_id: userId, name: name })
                 });
                 
                 if (!response.ok) {
@@ -65,10 +59,10 @@
                 }
                 
                 const data = await response.json();
-                successDiv.textContent = `Account created successfully! Welcome, ${data.user.name}!`;
+                successDiv.textContent = `Account created! Welcome, ${data.user.name}!`;
                 successDiv.style.display = 'block';
                 
-                // Redirect to home page after 2 seconds
+                // Redirect to signin page after 2 seconds
                 setTimeout(() => {
                     window.location.href = '/';
                 }, 2000);

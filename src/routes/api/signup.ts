@@ -9,20 +9,20 @@ router.post(
   '/signup',
   validate(signUpRequestSchema),
   async (req: Request, res: Response): Promise<void> => {
-    const { username, name } = req.body;
+    const { user_id, name } = req.body;
 
     const existingUser = await prisma.user.findUnique({
-      where: { username },
+      where: { id: user_id },
     });
 
     if (existingUser) {
-      res.status(400).json({ detail: 'Username already exists' });
+      res.status(400).json({ detail: 'User ID already exists' });
       return;
     }
 
     const newUser = await prisma.user.create({
       data: {
-        username,
+        id: user_id,
         name,
       },
     });
@@ -30,7 +30,6 @@ router.post(
     res.json({
       user: {
         id: newUser.id,
-        username: newUser.username,
         name: newUser.name,
         created: newUser.created.toISOString(),
         updated: newUser.updated.toISOString(),

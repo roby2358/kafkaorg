@@ -3,12 +3,32 @@
 
 -- User table
 CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(255) NOT NULL UNIQUE,
+    id VARCHAR(32) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Index on username for faster lookups
-CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+-- Agent table
+CREATE TABLE IF NOT EXISTS agents (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(256) NOT NULL,
+    topic VARCHAR(256) NOT NULL,
+    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted TIMESTAMP,
+    active BOOLEAN NOT NULL
+);
+
+-- Conversation table
+CREATE TABLE IF NOT EXISTS conversations (
+    id SERIAL PRIMARY KEY,
+    description VARCHAR(1024) NOT NULL,
+    topic VARCHAR(256) NOT NULL,
+    user_id VARCHAR(32) REFERENCES users(id),
+    agent_id INT REFERENCES agents(id),
+    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Messages are stored in Kafka topics, not in the database

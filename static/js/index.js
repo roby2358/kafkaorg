@@ -3,11 +3,9 @@
 document.getElementById('signin-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const username = document.getElementById('username').value;
-    const greetingDiv = document.getElementById('greeting');
+    const userId = document.getElementById('user-id').value.trim();
     const errorDiv = document.getElementById('error');
     
-    greetingDiv.style.display = 'none';
     errorDiv.style.display = 'none';
     
     try {
@@ -16,16 +14,17 @@ document.getElementById('signin-form').addEventListener('submit', async (e) => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ username: username })
+            body: JSON.stringify({ user_id: userId })
         });
         
         const data = await response.json();
         
         if (data.found) {
-            greetingDiv.textContent = `Hello, ${data.user.name}!`;
-            greetingDiv.style.display = 'block';
+            document.cookie = `user_id=${userId}; path=/`;
+            window.location.href = '/home';
         } else {
-            window.location.href = '/signup?username=' + encodeURIComponent(username);
+            errorDiv.textContent = 'User ID not found.';
+            errorDiv.style.display = 'block';
         }
     } catch (error) {
         errorDiv.textContent = 'An error occurred. Please try again.';
