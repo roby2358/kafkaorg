@@ -13,7 +13,6 @@ body {
 .nav-bar {
     padding: 0.5rem 0;
     margin: 0 0 0.5rem 0;
-    border-bottom: 1px solid #ddd;
 }
 
 .nav-bar a {
@@ -237,13 +236,29 @@ body.monitor-page {
 body.docmem-page {
     max-width: none;
     margin: 0;
-    padding: 0;
+    padding: 0.5rem 1rem;
+    overflow-x: hidden;
+    height: calc(100vh - 4rem);
+    display: flex;
+    flex-direction: column;
+}
+
+.docmem-wrapper {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem 1.5rem;
+    flex: 1;
+    min-height: 0;
+}
+
+.docmem-wrapper .nav-bar {
+    margin: 0;
 }
 
 .secondary-nav-bar {
     background: #f8f9fa;
-    padding: 0.75rem 2rem;
-    margin: 0 -2rem 1rem -2rem;
+    padding: 0.5rem 0;
+    margin: 0 0 0.5rem 0;
     border-bottom: 1px solid #ddd;
 }
 
@@ -265,9 +280,12 @@ body.docmem-page {
 .docmem-container {
     display: flex;
     gap: 1rem;
-    height: calc(100vh - 8rem);
-    margin: 0 -2rem;
-    padding: 0 2rem;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    box-sizing: border-box;
+    flex: 1;
+    min-height: 0;
 }
 
 .docmem-left {
@@ -363,38 +381,23 @@ body.docmem-page {
 
 .viewer-panel {
     flex: 1;
-    padding: 1rem;
     overflow-y: auto;
     font-family: 'Consolas', 'Monaco', monospace;
     font-size: 0.9rem;
-    line-height: 1.6;
-    white-space: pre-wrap;
-    word-wrap: break-word;
 }
 
 .viewer-panel.graph-view {
-    padding: 1rem;
+    white-space: normal;
 }
 
-.viewer-panel .node-item {
-    margin: 0.5rem 0;
-    padding-left: 1rem;
-    border-left: 2px solid #ddd;
-}
 
-.viewer-panel .node-item.expanded {
-    border-left-color: #007bff;
-}
 
 .viewer-panel .node-header {
     cursor: pointer;
-    padding: 0.5rem;
     background: #f8f9fa;
-    border-radius: 4px;
-    margin-bottom: 0.25rem;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    line-height: 1;
 }
 
 .viewer-panel .node-header:hover {
@@ -413,10 +416,10 @@ body.docmem-page {
 
 .viewer-panel .node-content {
     display: none;
-    padding: 0.5rem;
     color: #333;
     white-space: pre-wrap;
     word-wrap: break-word;
+    line-height: 1.6;
 }
 
 .viewer-panel .node-item.expanded .node-content {
@@ -431,19 +434,9 @@ body.docmem-page {
     content: '▶ ';
 }
 
-.viewer-panel .separator {
-    margin: 1rem 0;
-    padding: 0.5rem 0;
-    border-top: 1px solid #ddd;
-    text-align: center;
-    color: #999;
-}
 
 .viewer-panel .metadata {
     font-size: 0.8rem;
     color: #666;
-    margin-bottom: 0.5rem;
-    padding: 0.25rem;
     background: #f8f9fa;
-    border-radius: 2px;
 }

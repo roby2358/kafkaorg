@@ -8,15 +8,16 @@
     <link rel="stylesheet" href="/static/css/index.css">
 </head>
 <body class="docmem-page">
-    <nav class="nav-bar">
-        <a href="/">Home</a> | <a href="/monitor.html">Monitor</a> | <a href="/docmem.html">Docmem</a>
-    </nav>
-    <nav class="secondary-nav-bar">
-        <a href="#" class="mode-link active" data-mode="graph">graph</a> | 
-        <a href="#" class="mode-link" data-mode="expanded">expanded</a> | 
-        <a href="#" class="mode-link" data-mode="serialized">serialized</a>
-    </nav>
-    <div class="docmem-container">
+    <div class="container docmem-wrapper">
+        <nav class="nav-bar">
+            <a href="/">Home</a> | <a href="/monitor.html">Monitor</a> | <a href="/docmem.html">Docmem</a>
+        </nav>
+        <nav class="secondary-nav-bar">
+            <a href="#" class="mode-link active" data-mode="graph">graph</a> | 
+            <a href="#" class="mode-link" data-mode="expanded">expanded</a> | 
+            <a href="#" class="mode-link" data-mode="serialized">serialized</a>
+        </nav>
+        <div class="docmem-container">
         <div class="docmem-left">
             <table class="docmem-table">
                 <thead>
@@ -42,6 +43,7 @@
                 <p>Select a docmem from the table to view.</p>
             </div>
         </div>
+    </div>
     </div>
     <script src="/static/js/docmem.js"></script>
 </body>

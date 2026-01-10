@@ -118,12 +118,12 @@ async function loadGraphView() {
         const children = childrenMap.get(nodeId) || [];
         const sortedChildren = children.sort((a, b) => a.order - b.order);
         
-        const metadata = `[${node.contextType}:${node.contextName}:${node.contextValue}] tokens:${node.tokenCount}`;
+        const parentIdDisplay = node.parentId ? node.parentId : 'null';
+        const metadata = `id: ${node.id} | parentId: ${parentIdDisplay} | ${node.contextType}:${node.contextName}:${node.contextValue} | tokens: ${node.tokenCount}`;
         
         let html = `
             <div class="node-item" data-node-id="${escapeHtml(node.id)}" style="padding-left: ${depth * 1.5}rem;">
                 <div class="node-header" onclick="toggleNode('${escapeHtml(node.id)}')">
-                    <span class="node-id">${escapeHtml(node.id)}</span>
                     <span class="node-meta">${escapeHtml(metadata)}</span>
                 </div>
                 <div class="node-content">${escapeHtml(node.text)}</div>
@@ -161,11 +161,8 @@ async function loadExpandedView() {
     
     let html = '';
     data.nodes.forEach((node, index) => {
-        if (index > 0) {
-            html += '<div class="separator">---</div>';
-        }
-        
-        const metadata = `id: ${node.id} | ${node.contextType}:${node.contextName}:${node.contextValue} | tokens: ${node.tokenCount}`;
+        const parentIdDisplay = node.parentId ? node.parentId : 'null';
+        const metadata = `id: ${node.id} | parentId: ${parentIdDisplay} | ${node.contextType}:${node.contextName}:${node.contextValue} | tokens: ${node.tokenCount}`;
         html += `<div class="metadata">${escapeHtml(metadata)}</div>`;
         html += `<div class="content">${escapeHtml(node.text)}</div>`;
     });
@@ -185,7 +182,16 @@ async function loadSerializedView() {
         return;
     }
     
-    panel.textContent = data.content;
+    // Ensure double newlines between each node's content, stripping trailing whitespace first
+    let content;
+    if (data.nodes && data.nodes.length > 0) {
+        content = data.nodes.map(n => n.text.trimEnd()).join('\n\n');
+    } else {
+        content = data.content.trimEnd();
+    }
+    
+    // Use a readonly textarea to preserve spacing
+    panel.innerHTML = `<textarea readonly style="width: 100%; height: 100%; border: none; resize: none; font-family: inherit; font-size: inherit; background: transparent; padding: 0; margin: 0; outline: none;">${escapeHtml(content)}</textarea>`;
 }
 
 document.querySelectorAll('.mode-link').forEach(link => {
