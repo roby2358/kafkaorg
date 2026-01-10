@@ -1,0 +1,39 @@
+Score:   75
+ID: sandbox-2sry
+Agents can write and run code in a structured, isolated runtime environment - sandboxed execution with defined inputs/outputs enabling safe dynamic tool creation and automation
+---
+Score:   70
+ID: bizorg-fyte
+Structure the agent framework to mirror a business organization - with roles like managers, workers, specialists, and executives that coordinate through defined communication channels
+---
+Score:   70
+ID: selfcode-4rig
+Agents have access to the framework's codebase - enabling self-inspection, understanding their own architecture, and potentially contributing improvements or extensions
+---
+Score:   65
+ID: sharedmem-8bs3
+The organization operates on a shared hierarchical memory structure - agents access knowledge at different levels (personal, team, department, org-wide) enabling context-aware collaboration
+---
+Score:   65
+ID: proj-docmem-vr6f
+Parse a project codebase into docmem - automatically extract and structure code, docs, and metadata into the hierarchical document memory system
+---
+Score:   60
+ID: spawner-xdja
+Agents can dynamically define, configure, and launch other specialized agents to handle subtasks - creating a self-organizing agent hierarchy
+---
+Score:   60
+ID: wishlist-5u3t
+A wish list system where users and agents can make requests, and a human operator can review, rank, and prioritize them - enabling collaborative roadmap management
+---
+Score:   55
+ID: bluesky-7xyf
+Add tools for Bluesky communication - enable agents to read, post, and interact on the Bluesky social network
+---
+Score:   50
+ID: selfmod-nvnv
+Create an environment where agents can write, test, and deploy their own code modifications - enabling evolutionary improvement of agent capabilities over time
+---
+Score:   50
+ID: imagegen-4vaf
+Image generation capabilities for agents - integrate with image generation APIs to create visuals on demand

@@ -21,7 +21,7 @@ document.getElementById('signin-form').addEventListener('submit', async (e) => {
         
         if (data.found) {
             document.cookie = `user_id=${userId}; path=/`;
-            window.location.href = '/home';
+            window.location.href = '/home.html';
         } else {
             errorDiv.textContent = 'User ID not found.';
             errorDiv.style.display = 'block';

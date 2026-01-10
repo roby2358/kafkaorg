@@ -54,6 +54,7 @@ export class Agent {
   private model: string;
   private consumer: Consumer | null = null;
   private running = false;
+  private startTime: Date | null = null;
   private openRouter: OpenRouterAPI | null = null;
   private conversationHistory: ChatMessage[] = [];
   private lastMessageTime: Date | null = null;
@@ -92,7 +93,8 @@ export class Agent {
     await this.consumer.subscribe({ topic: this.topic, fromBeginning: true });
 
     this.running = true;
-    console.log(`Agent ${this.name} (id=${this.agentId}) started on topic ${this.topic}`);
+    this.startTime = new Date();
+    console.log(`Agent ${this.name} (id=${this.agentId}) started on topic ${this.topic} at ${this.startTime.toISOString()}`);
 
     await this.consumer.run({
       eachMessage: async ({ message }) => {
@@ -183,6 +185,7 @@ export class Agent {
     }
 
     this.running = false;
+    this.startTime = null;
     await this.consumer.disconnect();
     this.consumer = null;
     console.log(`Agent ${this.name} stopped`);
@@ -190,6 +193,10 @@ export class Agent {
 
   isRunning(): boolean {
     return this.running;
+  }
+
+  getStartTime(): Date | null {
+    return this.startTime;
   }
 
 }
@@ -214,4 +221,13 @@ export async function stopAllAgents(): Promise<void> {
     await agent.stop();
   }
   activeAgents.clear();
+}
+
+export function getAllAgents(): Map<number, Agent> {
+  return activeAgents;
+}
+
+export function isAgentRunning(agentId: number): boolean {
+  const agent = activeAgents.get(agentId);
+  return agent ? agent.isRunning() : false;
 }

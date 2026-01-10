@@ -9,6 +9,23 @@ body {
     background: #f5f5f5;
 }
 
+/* Navigation Bar */
+.nav-bar {
+    background: white;
+    padding: 1rem 2rem;
+    margin: -2rem -2rem 2rem -2rem;
+    border-bottom: 1px solid #ddd;
+}
+
+.nav-bar a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.nav-bar a:hover {
+    text-decoration: underline;
+}
+
 /* Container */
 .container {
     background: white;
@@ -162,4 +179,46 @@ button.secondary:hover {
 
 .input-area button {
     flex-shrink: 0;
+}
+
+/* Agents Table */
+.agents-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.agents-table th,
+.agents-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.agents-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #333;
+}
+
+.agents-table tr:hover {
+    background: #f8f9fa;
+}
+
+.status-active {
+    color: #155724;
+    font-weight: 500;
+}
+
+.status-inactive {
+    color: #721c24;
+}
+
+.status-running {
+    color: #155724;
+    font-weight: 600;
+}
+
+.status-stopped {
+    color: #856404;
 }
