@@ -659,61 +659,81 @@ export class Docmem {
     }
   }
 
+  /**
+   * Expand a node to fit within a token budget.
+   * 
+   * Algorithm:
+   * 1. Reverse BFS to build priority list (level-by-level, last children first within each level)
+   * 2. Iterate through priority list, consuming budget until it's spent (no holes - stop on first failure)
+   * 3. Preorder DFS traversal, rendering only nodes in the included set
+   * 
+   * The priority order guarantees parents come before children, so stopping
+   * on budget exhaustion naturally prevents orphans.
+   * 
+   * Example: For tree ROOT -> A(C,D), B(E):
+   * - Priority list: ROOT, B, A, E, D, C
+   * - Budget consumed until exhausted, list truncated
+   * - DFS render: ROOT, A, ..., B, ... (only included nodes)
+   */
   async expandToLength(nodeId: string, maxTokens: number): Promise<Node[]> {
     if (!nodeId) {
       throw new Error('nodeId is required');
     }
-    const result: Node[] = [];
+
     const startNode = await this._requireNode(nodeId);
 
-    result.push(startNode);
-    let totalTokens = startNode.tokenCount || 0;
+    // Step 1: Build priority list via reverse BFS
+    // Level-by-level, but within each level, reverse order (last children first)
+    const priorityList: Node[] = [];
+    let currentLevel: Node[] = [startNode];
 
-    const depth1Nodes: Node[] = [];
-    const queue: { node: Node; depth: number }[] = [{ node: startNode, depth: 0 }];
-
-    while (queue.length > 0) {
-      const item = queue.shift();
-      if (!item) break;
-      const { node, depth } = item;
-
-      if (depth === 1) {
-        depth1Nodes.push(node);
-      } else if (depth < 1) {
-        const sortedChildren = await this._getSortedChildren(node.id);
-        for (const child of sortedChildren) {
-          queue.push({ node: child, depth: depth + 1 });
-        }
+    while (currentLevel.length > 0) {
+      // Add nodes in reverse order (last ones have higher priority)
+      for (let i = currentLevel.length - 1; i >= 0; i--) {
+        priorityList.push(currentLevel[i]);
       }
+
+      // Collect children for next level (maintain original order for proper grouping)
+      const nextLevel: Node[] = [];
+      for (const node of currentLevel) {
+        const children = await this._getSortedChildren(node.id);
+        nextLevel.push(...children);
+      }
+
+      currentLevel = nextLevel;
     }
 
-    const sortedDepth1 = depth1Nodes.sort((a, b) => a.order - b.order);
+    // Step 2: Consume budget - stop on first node that doesn't fit (no holes)
+    const includedIds = new Set<string>();
+    let totalTokens = 0;
 
-    for (const node of sortedDepth1) {
-      if (totalTokens >= maxTokens) {
+    for (const node of priorityList) {
+      const nodeTokens = node.tokenCount || 0;
+      if (totalTokens + nodeTokens <= maxTokens) {
+        includedIds.add(node.id);
+        totalTokens += nodeTokens;
+      } else {
+        // Budget exhausted - stop here, truncate the rest
         break;
       }
-
-      const children = await this._getChildren(node.id);
-      if (children.length > 0) {
-        const sortedChildren = await this._getSortedChildren(node.id);
-        for (const child of sortedChildren) {
-          if (totalTokens + child.tokenCount <= maxTokens) {
-            result.push(child);
-            totalTokens += child.tokenCount;
-          } else {
-            break;
-          }
-        }
-      } else {
-        if (totalTokens + node.tokenCount <= maxTokens) {
-          result.push(node);
-          totalTokens += node.tokenCount;
-        } else {
-          break;
-        }
-      }
     }
+
+    // Step 3: Preorder DFS traversal, rendering only included nodes
+    const result: Node[] = [];
+
+    const renderDfs = async (node: Node): Promise<void> => {
+      if (!includedIds.has(node.id)) {
+        // Node not included - skip entire subtree
+        return;
+      }
+      result.push(node);
+      const children = await this._getSortedChildren(node.id);
+      for (const child of children) {
+        await renderDfs(child);
+      }
+    };
+
+    await renderDfs(startNode);
 
     return result;
   }
