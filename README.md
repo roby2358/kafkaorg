@@ -135,6 +135,14 @@ Delete a topic:
 podman exec kafkaorg_kafkaorg_1 /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --delete --topic conv-1
 ```
 
+## Command Parser
+
+The command parser (`src/bash/command_parser.js`) is generated from the PEG grammar. To regenerate after editing the grammar:
+
+```bash
+npx peggy --format es -o src/bash/command_parser.js src/bash/command.pegjs
+```
+
 ## Managing the Container
 
 View logs:

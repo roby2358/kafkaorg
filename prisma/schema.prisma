@@ -44,3 +44,24 @@ model Conversation {
 
   @@map("conversations")
 }
+
+model DocmemNode {
+  id           String        @id @db.VarChar(32)
+  parentId     String?       @map("parent_id") @db.VarChar(32)
+  text         String        @db.Text
+  orderValue   Float         @map("order_value")
+  tokenCount   Int           @map("token_count")
+  createdAt    DateTime      @map("created_at") @default(now())
+  updatedAt    DateTime      @map("updated_at") @updatedAt
+  contextType  String        @map("context_type") @db.VarChar(24)
+  contextName  String        @map("context_name") @db.VarChar(24)
+  contextValue String        @map("context_value") @db.VarChar(24)
+  readonly     Int           @default(0)
+  hash         String?       @db.VarChar(128)
+  parent       DocmemNode?   @relation("NodeHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children     DocmemNode[]  @relation("NodeHierarchy")
+
+  @@index([parentId])
+  @@index([parentId, orderValue])
+  @@map("docmem_nodes")
+}
