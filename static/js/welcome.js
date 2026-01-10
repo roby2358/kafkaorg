@@ -1,4 +1,7 @@
-// Kafkaorg - Index Page JavaScript
+// Kafkaorg - Welcome Page JavaScript
+
+// Clear the kafkaorg cookie when the welcome page loads
+document.cookie = 'kafkaorg=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
 
 document.getElementById('signin-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -20,8 +23,8 @@ document.getElementById('signin-form').addEventListener('submit', async (e) => {
         const data = await response.json();
         
         if (data.found) {
-            document.cookie = `user_id=${userId}; path=/`;
-            window.location.href = '/home.html';
+            document.cookie = `kafkaorg=${userId}; path=/`;
+            window.location.href = '/';
         } else {
             errorDiv.textContent = 'User ID not found.';
             errorDiv.style.display = 'block';

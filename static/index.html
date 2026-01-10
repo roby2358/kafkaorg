@@ -3,31 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kafkaorg - Hello World</title>
+    <title>Kafkaorg - Home</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="stylesheet" href="/static/css/index.css">
 </head>
 <body>
     <nav class="nav-bar">
-        <a href="/home.html">Home</a> | <a href="/monitor.html">Monitor</a> | <a href="/docmem.html">Docmem</a>
+        <a href="/">Home</a> | <a href="/monitor.html">Monitor</a> | <a href="/docmem.html">Docmem</a>
     </nav>
     <div class="container">
-        <h1>Hello World!</h1>
-        <p>Welcome to Kafkaorg - your playground for orchestrating AI agents with Kafka, LangGraph, and LangChain.</p>
-        <p>This page is being served by Express.js from the TypeScript backend.</p>
+        <h1 id="greeting">Loading...</h1>
         
-        <div class="signin-form">
-            <form id="signin-form">
-                <div class="form-group">
-                    <label for="user-id">User ID:</label>
-                    <input type="text" id="user-id" name="user_id" maxlength="32" required>
-                </div>
-                <button type="submit">Sign In</button>
-            </form>
-            <div id="error" class="error" style="display: none;"></div>
+        <div class="button-group">
+            <button class="primary" onclick="window.location.href='/conversation'">New Conversation</button>
         </div>
     </div>
     
-    <script src="/static/js/index.js"></script>
+    <script src="/static/js/home.js"></script>
 </body>
 </html>

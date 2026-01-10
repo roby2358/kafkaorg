@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kafkaorg - Welcome</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="stylesheet" href="/static/css/index.css">
+</head>
+<body>
+    <!-- no navigation bar on welcome -->
+    <div class="container">
+        <h1>Welcome!</h1>
+        <p>Welcome to Kafkaorg - your playground for orchestrating AI agents with Kafka and embedded agent tools.</p>
+        
+        <div class="signin-form">
+            <form id="signin-form">
+                <div class="form-group">
+                    <label for="user-id">User ID:</label>
+                    <input type="text" id="user-id" name="user_id" maxlength="32" required>
+                </div>
+                <button type="submit">Sign In</button>
+            </form>
+            <div id="error" class="error" style="display: none;"></div>
+        </div>
+    </div>
+    
+    <script src="/static/js/welcome.js"></script>
+</body>
+</html>

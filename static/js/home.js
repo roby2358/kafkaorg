@@ -13,10 +13,9 @@ function getCookie(name) {
 
 async function loadGreeting() {
     const greetingEl = document.getElementById('greeting');
-    const userId = getCookie('user_id');
+    const userId = getCookie('kafkaorg');
     
     if (!userId) {
-        window.location.href = '/';
         return;
     }
     
@@ -34,7 +33,7 @@ async function loadGreeting() {
         if (data.found) {
             greetingEl.textContent = `Hello, ${data.user.name}!`;
         } else {
-            window.location.href = '/';
+            window.location.href = '/welcome.html';
         }
     } catch (error) {
         greetingEl.textContent = 'An error occurred loading your profile.';

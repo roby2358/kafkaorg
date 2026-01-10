@@ -26,7 +26,7 @@ function appendMessage(sender, message) {
 
 async function startConversation() {
     const greetingEl = document.getElementById('greeting');
-    currentUserId = getCookie('user_id');
+    currentUserId = getCookie('kafkaorg');
     
     if (!currentUserId) {
         window.location.href = '/';
