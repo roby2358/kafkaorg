@@ -185,14 +185,13 @@ button.secondary:hover {
 .agents-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 1rem;
+    margin-top: 0.25rem;
 }
 
 .agents-table th,
 .agents-table td {
-    padding: 0.75rem;
+    padding: 0.25rem;
     text-align: left;
-    border-bottom: 1px solid #ddd;
 }
 
 .agents-table th {
@@ -201,8 +200,12 @@ button.secondary:hover {
     color: #333;
 }
 
+.agents-table tbody tr:nth-child(even) {
+    background: #f5f5f5;
+}
+
 .agents-table tr:hover {
-    background: #f8f9fa;
+    background: #e9ecef;
 }
 
 .status-active {
@@ -221,6 +224,13 @@ button.secondary:hover {
 
 .status-stopped {
     color: #856404;
+}
+
+/* Monitor Layout */
+body.monitor-page {
+    max-width: none;
+    margin: 0 auto;
+    padding: 0.5rem 1rem;
 }
 
 /* Docmem Layout */
