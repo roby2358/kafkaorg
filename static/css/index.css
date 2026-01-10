@@ -222,3 +222,218 @@ button.secondary:hover {
 .status-stopped {
     color: #856404;
 }
+
+/* Docmem Layout */
+body.docmem-page {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+
+.secondary-nav-bar {
+    background: #f8f9fa;
+    padding: 0.75rem 2rem;
+    margin: 0 -2rem 1rem -2rem;
+    border-bottom: 1px solid #ddd;
+}
+
+.secondary-nav-bar a {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.secondary-nav-bar a:hover {
+    text-decoration: underline;
+}
+
+.secondary-nav-bar a.active {
+    font-weight: 600;
+    color: #0056b3;
+}
+
+.docmem-container {
+    display: flex;
+    gap: 1rem;
+    height: calc(100vh - 8rem);
+    margin: 0 -2rem;
+    padding: 0 2rem;
+}
+
+.docmem-left {
+    flex: 0 0 350px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.docmem-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.docmem-table thead {
+    background: #f8f9fa;
+    position: sticky;
+    top: 0;
+}
+
+.docmem-table th {
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #ddd;
+}
+
+.docmem-table tbody {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.docmem-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #eee;
+}
+
+.docmem-table tbody tr {
+    cursor: pointer;
+}
+
+.docmem-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.docmem-table tbody tr.selected {
+    background: #e7f3ff;
+}
+
+.docmem-table tbody td:first-child {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.docmem-right {
+    flex: 1;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.expanded-control {
+    padding: 1rem;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.expanded-control label {
+    margin: 0;
+    font-weight: 500;
+}
+
+.expanded-control input[type="number"] {
+    width: 100px;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.expanded-control button {
+    padding: 0.5rem 1rem;
+}
+
+.viewer-panel {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.viewer-panel.graph-view {
+    padding: 1rem;
+}
+
+.viewer-panel .node-item {
+    margin: 0.5rem 0;
+    padding-left: 1rem;
+    border-left: 2px solid #ddd;
+}
+
+.viewer-panel .node-item.expanded {
+    border-left-color: #007bff;
+}
+
+.viewer-panel .node-header {
+    cursor: pointer;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    margin-bottom: 0.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.viewer-panel .node-header:hover {
+    background: #e9ecef;
+}
+
+.viewer-panel .node-header .node-id {
+    font-weight: 600;
+    color: #007bff;
+}
+
+.viewer-panel .node-header .node-meta {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.viewer-panel .node-content {
+    display: none;
+    padding: 0.5rem;
+    color: #333;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.viewer-panel .node-item.expanded .node-content {
+    display: block;
+}
+
+.viewer-panel .node-item.expanded .node-header::before {
+    content: '▼ ';
+}
+
+.viewer-panel .node-item:not(.expanded) .node-header::before {
+    content: '▶ ';
+}
+
+.viewer-panel .separator {
+    margin: 1rem 0;
+    padding: 0.5rem 0;
+    border-top: 1px solid #ddd;
+    text-align: center;
+    color: #999;
+}
+
+.viewer-panel .metadata {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+    padding: 0.25rem;
+    background: #f8f9fa;
+    border-radius: 2px;
+}

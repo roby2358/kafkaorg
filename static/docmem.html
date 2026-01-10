@@ -7,13 +7,42 @@
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="stylesheet" href="/static/css/index.css">
 </head>
-<body>
+<body class="docmem-page">
     <nav class="nav-bar">
         <a href="/">Home</a> | <a href="/monitor.html">Monitor</a> | <a href="/docmem.html">Docmem</a>
     </nav>
-    <div class="container">
-        <h1>Docmem</h1>
-        <p>Document memory management interface coming soon.</p>
+    <nav class="secondary-nav-bar">
+        <a href="#" class="mode-link active" data-mode="graph">graph</a> | 
+        <a href="#" class="mode-link" data-mode="expanded">expanded</a> | 
+        <a href="#" class="mode-link" data-mode="serialized">serialized</a>
+    </nav>
+    <div class="docmem-container">
+        <div class="docmem-left">
+            <table class="docmem-table">
+                <thead>
+                    <tr>
+                        <th>NodeId</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody id="roots-table-body">
+                    <tr>
+                        <td colspan="2">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="docmem-right">
+            <div id="expanded-length-control" class="expanded-control" style="display: none;">
+                <label for="length-input">Length:</label>
+                <input type="number" id="length-input" value="3000" min="1">
+                <button id="apply-length-btn">Apply</button>
+            </div>
+            <div id="viewer-panel" class="viewer-panel">
+                <p>Select a docmem from the table to view.</p>
+            </div>
+        </div>
     </div>
+    <script src="/static/js/docmem.js"></script>
 </body>
 </html>

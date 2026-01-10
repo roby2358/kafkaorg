@@ -7,6 +7,7 @@ import signupRouter from './api/signup.js';
 import userMessageRouter from './api/user-message.js';
 import conversationRouter from './api/conversation.js';
 import agentsRouter from './api/agents.js';
+import docmemRouter from './api/docmem.js';
 import { generateOpenApiDocument } from '../openapi.js';
 
 const router: IRouter = Router();
@@ -82,5 +83,6 @@ router.use('/api', signupRouter);
 router.use('/api', userMessageRouter);
 router.use('/api', conversationRouter);
 router.use('/api', agentsRouter);
+router.use('/api', docmemRouter);
 
 export default router;
