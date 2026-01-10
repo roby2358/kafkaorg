@@ -12,14 +12,9 @@ Reset the database (drop and recreate schema):
 pnpm prisma migrate reset
 ```
 
+Note: Seeding runs automatically on `prisma migrate reset` and when `prisma migrate dev` creates a new database.
+
 Apply pending migrations:
 ```bash
 pnpm prisma migrate dev
 ```
-
-Seed the database with initial data:
-```bash
-pnpm prisma:seed
-```
-
-Note: Seeding runs automatically on `prisma migrate reset` and when `prisma migrate dev` creates a new database.
