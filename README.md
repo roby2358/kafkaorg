@@ -96,44 +96,10 @@ pnpm dev
 
 The server will start at `http://localhost:8821` with auto-reload enabled for development.
 
-## Database Commands
+## Administration
 
-Connect to PostgreSQL CLI in the container:
-```bash
-podman exec -it kafkaorg-kafkaorg-1 psql -U postgres -d kafkaorg
-```
-
-Reset the database (drop and recreate schema):
-```bash
-pnpm prisma migrate reset
-```
-
-Apply pending migrations:
-```bash
-pnpm prisma migrate dev
-```
-
-## Kafka Commands
-
-List all topics:
-```bash
-podman exec kafkaorg_kafkaorg_1 /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
-```
-
-Watch messages on a topic (live):
-```bash
-podman exec kafkaorg_kafkaorg_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic conv-1
-```
-
-Watch messages from the beginning:
-```bash
-podman exec kafkaorg_kafkaorg_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic conv-1 --from-beginning
-```
-
-Delete a topic:
-```bash
-podman exec kafkaorg_kafkaorg_1 /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --delete --topic conv-1
-```
+- [PostgreSQL Administration](README_POSTGRES_ADMIN.md)
+- [Kafka Administration](README_KAFKA_ADMIN.md)
 
 ## Command Parser
 
