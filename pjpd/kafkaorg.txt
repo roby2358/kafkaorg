@@ -3,10 +3,25 @@ Status: ToDo
 ID: ui-nccu
 Research and set up UI solution for monitoring messages and managing agents
 ---
+Priority:   75
+Status: ToDo
+ID: docmem-d9d9
+Implement hierarchical document memory system for agents
+---
 Priority:   70
 Status: ToDo
 ID: arch-fdk7
 Design agent registry/discovery mechanism
+---
+Priority:   70
+Status: ToDo
+ID: llm-store-ggdh
+Store LLM requests and responses for monitoring - capture OpenRouter API calls with prompts, completions, tokens, latency
+---
+Priority:   70
+Status: ToDo
+ID: tools-list-y52j
+Develop a tools list for agents, organized by category
 ---
 Priority:   60
 Status: ToDo
@@ -28,25 +43,45 @@ Status: ToDo
 ID: boss-monitor-r3ms
 Implement a boss agent that monitors the health and status of all other agents in the system
 ---
-Priority:   40
+Priority:   60
+Status: ToDo
+ID: llm-view-h66s
+Implement LLM request/response viewer in monitoring UI
+---
+Priority:   50
+Status: ToDo
+ID: bsky-notify-cugw
+Agent to receive notifications from Bluesky
+---
+Priority:   50
+Status: ToDo
+ID: bsky-post-ew4d
+Agent to post to Bluesky
+---
+Priority:   20
 Status: ToDo
 ID: phase3-cauj
 Implement code generation framework for agent tools
 ---
-Priority:   40
-Status: ToDo
-ID: phase3-k5kh
-Build sandboxed execution environment for generated code
----
-Priority:   40
+Priority:   20
 Status: ToDo
 ID: security-xwxp
 Design security model for executing dynamically generated code
 ---
-Priority:   40
+Priority:   20
 Status: ToDo
 ID: merge-agents-8ssk
 Combine conversation agent functionality with the basic agent implementation
+---
+Priority:   20
+Status: ToDo
+ID: phase3-k5kh
+Build sandboxed execution environment for generated code
+---
+Priority:   20
+Status: ToDo
+ID: nav-2pv2
+Add UI to navigate back from conversation page to home page
 ---
 Priority:    0
 Status: Done
