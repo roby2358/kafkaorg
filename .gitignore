@@ -73,3 +73,5 @@ coverage/
 *.temp
 .cache/
 /.cursor/
+/.claude/
+/.cursor/
