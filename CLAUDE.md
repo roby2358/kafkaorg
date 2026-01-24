@@ -237,6 +237,7 @@ Tool-specific prompts are maintained alongside their implementations:
 - **DATABASE.md** - Database schema documentation
 - **DESIGN.md** - High-level system architecture
 - **MANIFEST.md** - Project roadmap and vision
+- **README_BUILD.md** - Building and deployment guide
 - **README_KAFKA_ADMIN.md** - Kafka administration commands
 - **README_POSTGRES_ADMIN.md** - PostgreSQL administration
 

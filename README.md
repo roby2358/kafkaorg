@@ -60,54 +60,16 @@ The container includes all services:
 
 All services start automatically when the container starts. The web server is available at `http://localhost:8822`.
 
-## Local Development (Optional)
+## Development and Building
 
-If you want to develop the web server locally instead of in the container:
+For instructions on building the Docker image, deploying to registries, or setting up local development:
 
-### Prerequisites
-- Node.js 18+ installed
-- pnpm installed (`npm install -g pnpm`)
-
-### Setup
-
-1. Install dependencies:
-```bash
-pnpm install
-```
-
-2. Set up environment variables:
-```bash
-cp .env.example .env
-```
-Edit `.env` to point to the containerized database: `DATABASE_URL="postgresql://postgres:postgres@localhost:5432/kafkaorg"`
-
-3. Generate Prisma client:
-```bash
-pnpm prisma:generate
-```
-
-### Development
-
-Start the Express.js backend server:
-
-```bash
-pnpm dev
-```
-
-The server will start at `http://localhost:8821` with auto-reload enabled for development.
+- [Building and Deployment Guide](README_BUILD.md)
 
 ## Administration
 
 - [PostgreSQL Administration](README_POSTGRES_ADMIN.md)
 - [Kafka Administration](README_KAFKA_ADMIN.md)
-
-## Command Parser
-
-The command parser (`src/bash/command_parser.js`) is generated from the PEG grammar. To regenerate after editing the grammar:
-
-```bash
-npx peggy --format es -o src/bash/command_parser.js src/bash/command.pegjs
-```
 
 ## Managing the Container
 
