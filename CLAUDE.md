@@ -83,8 +83,10 @@ npx peggy --format es -o src/bash/command_parser.js src/bash/command.pegjs
 ## Specifications
 
 Technical specifications are maintained in `SPEC*.md` files:
-- **SPEC_EVAL.md**: Model evaluation system requirements (backtesting, weekly rankings, trade simulation)
-- **SPEC_TRAINING.md**: Model training system and lottery model approach
+- **SPEC_DOCMEM.md**: Complete docmem specification
+- **SPEC_DOCMEM_ATOMICITY.md**: Transaction and concurrency model for docmem
+- **SPEC_DOCMEM_SERIALIZATION.md**: Docmem serialization format and behavior
+- **SPEC_COMMAND_PARSER.md**: Bash parser specification (in src/bash/)
 
 **Important**: The SPEC*.md files are work products, not just documentation. They are maintained alongside the code and have equal importance. After the initial code implementation, specifications may drift out of sync with actual code changes. When making significant changes to the codebase, updating the corresponding specification documents is part of the work - not optional. The specs define what the system should do, while the code defines how it does it. Both must be kept in sync as the project evolves.
 
@@ -119,10 +121,11 @@ Technical specifications are maintained in `SPEC*.md` files:
 
 **`src/interpreter.ts`** - Tool execution layer. Processes agent responses, parses structured commands (speak, thought, action), and executes tools.
 
-**`src/docmem/`** - Document memory system. Hierarchical tree structure for agent memory:
+**`src/docmem_tools/`** - Document memory system. Hierarchical tree structure for agent memory:
 - `docmem.ts` - Core node and tree operations
 - `docmem_postgres.ts` - PostgreSQL backend implementation
-- `docmem_commands.ts` - Command interface for agents
+- `docmem_tools.ts` - Tool implementations for docmem operations
+- `docmem_tools_prompt.ts` - System prompt for docmem tools
 - Implements optimistic locking with hash-based versioning
 - Nodes have context metadata (type, name, value) for semantic organization
 
@@ -187,10 +190,11 @@ See SPEC_DOCMEM.md and SPEC_DOCMEM_ATOMICITY.md for complete specifications.
 ### System Prompts
 
 Agents receive system prompts from `src/system_prompts/`:
-- `conversation.ts` - Base conversation behavior
-- `bash_root.ts` - Bash command execution capabilities
-- `system_commands.ts` - System-level tools
-- `docmem_commands.ts` - Document memory operations
+- `conversation.ts` - Base conversation behavior and tool execution
+
+Tool-specific prompts are maintained alongside their implementations:
+- `src/docmem_tools/docmem_tools_prompt.ts` - Document memory operations
+- System and bash tools are defined in their respective modules
 
 ## Service Endpoints
 
@@ -252,9 +256,10 @@ Key environment variables (see `.env`):
 4. Follow existing patterns for error handling
 
 ### Creating a New Agent Tool
-1. Add tool implementation to interpreter or dedicated module
-2. Update system prompt in `src/system_prompts/`
-3. Test tool execution via agent conversation
+1. Add tool implementation to interpreter or dedicated module (e.g., `src/system_tools/`, `src/docmem_tools/`)
+2. Create or update tool-specific prompt file alongside implementation
+3. Register tool in the interpreter (`src/interpreter.ts`)
+4. Test tool execution via agent conversation
 
 ### Modifying Database Schema
 1. Update `db/schema.sql`
