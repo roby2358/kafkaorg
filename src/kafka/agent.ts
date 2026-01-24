@@ -5,9 +5,9 @@ import { createConsumer, getProducer } from './client.js';
 import { ConversationMessage } from './types.js';
 import { OpenRouterAPI, ChatMessage } from '../agents/OpenRouterAPI.js';
 import { CONVERSATION_PROMPT } from '../system_prompts/conversation.js';
-import { BASH_ROOT_PROMPT } from '../system_prompts/bash_root.js';
-import { SYSTEM_COMMANDS } from '../system_prompts/system_commands.js';
-import { DOCMEM_COMMANDS } from '../system_prompts/docmem_commands.js';
+import { BASH_ROOT_PROMPT } from '../bash/bash_root_prompt.js';
+import { SYSTEM_COMMANDS } from '../system_tools/system_tools_prompt.js';
+import { DOCMEM_COMMANDS } from '../docmem_tools/docmem_tools_prompt.js';
 import { processResponse, formatExecutionResults } from '../interpreter.js';
 
 const SYSTEM_PROMPT = `${CONVERSATION_PROMPT}

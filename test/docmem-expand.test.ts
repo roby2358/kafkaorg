@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Node, Docmem } from '../src/docmem/docmem.js';
+import { Node, Docmem } from '../src/docmem_tools/docmem.js';
 
 /**
  * Tests for Docmem.expandToLength

@@ -164,7 +164,7 @@ function peg$parse(input, options) {
   };
   let peg$startRuleFunction = peg$parsecommand;
 
-  const peg$c0 = "```";
+  const peg$c0 = "\"\"\"";
   const peg$c1 = "'";
   const peg$c2 = "\"";
   const peg$c3 = "\\";
@@ -176,7 +176,7 @@ function peg$parse(input, options) {
   const peg$r1 = /^[ \t\n\r\\]/;
   const peg$r2 = /^[ \t\n\r]/;
 
-  const peg$e0 = peg$literalExpectation("```", false);
+  const peg$e0 = peg$literalExpectation("\"\"\"", false);
   const peg$e1 = peg$anyExpectation();
   const peg$e2 = peg$literalExpectation("'", false);
   const peg$e3 = peg$literalExpectation("\"", false);
@@ -465,7 +465,7 @@ function peg$parse(input, options) {
   function peg$parseargument() {
     let s0;
 
-    s0 = peg$parsequoted_triple_backtick();
+    s0 = peg$parsequoted_triple_quote();
     if (s0 === peg$FAILED) {
       s0 = peg$parsequoted_single();
       if (s0 === peg$FAILED) {
@@ -479,7 +479,7 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parsequoted_triple_backtick() {
+  function peg$parsequoted_triple_quote() {
     let s0, s1, s2, s3;
 
     s0 = peg$currPos;
@@ -491,7 +491,7 @@ function peg$parse(input, options) {
       if (peg$silentFails === 0) { peg$fail(peg$e0); }
     }
     if (s1 !== peg$FAILED) {
-      s2 = peg$parsetriple_backtick_content();
+      s2 = peg$parsetriple_quote_content();
       if (input.substr(peg$currPos, 3) === peg$c0) {
         s3 = peg$c0;
         peg$currPos += 3;
@@ -514,15 +514,15 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parsetriple_backtick_content() {
+  function peg$parsetriple_quote_content() {
     let s0, s1, s2;
 
     s0 = peg$currPos;
     s1 = [];
-    s2 = peg$parsetriple_backtick_char();
+    s2 = peg$parsetriple_quote_char();
     while (s2 !== peg$FAILED) {
       s1.push(s2);
-      s2 = peg$parsetriple_backtick_char();
+      s2 = peg$parsetriple_quote_char();
     }
     peg$savedPos = s0;
     s1 = peg$f3(s1);
@@ -531,7 +531,7 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parsetriple_backtick_char() {
+  function peg$parsetriple_quote_char() {
     let s0, s1, s2;
 
     s0 = peg$currPos;
@@ -1070,7 +1070,7 @@ function peg$parse(input, options) {
 
 
   // PEG grammar for command-line argument parsing
-  // Implements bash-compatible parsing with extensions for triple backticks
+  // Implements bash-compatible parsing with extensions for triple quotes
   
   // Export CommandParser class wrapper for ES modules
   // This code is included in the generated parser file

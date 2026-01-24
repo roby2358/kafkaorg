@@ -114,8 +114,7 @@ export class Interpreter {
   async processSpeakerResponse(
     speakerResponse: string,
     invokeMembers: InvokeMembersFunction,
-    invokeMember: InvokeMemberFunction,
-    memberCount: number
+    invokeMember: InvokeMemberFunction
   ): Promise<{ adjourned: boolean }> {
     const parsed = this.api.parseResponse(speakerResponse);
 
@@ -215,8 +214,10 @@ export class Interpreter {
     
     // Record single entry with speech and action combined (or full response)
     this.recordToHansard(memberName, message);
-    
+
     // Execute action if any
-    this.executeAction(parsed.action, memberName);
+    if (parsed.action) {
+      this.executeAction(parsed.action, memberName);
+    }
   }
 }

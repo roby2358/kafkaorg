@@ -3,9 +3,9 @@
  */
 
 import { parse, SyntaxError } from './bash/index.js';
-import { DocmemCommands, CommandResult } from './docmem/docmem_commands.js';
-import { SystemCommands } from './docmem/system_commands.js';
-import { Docmem } from './docmem/docmem.js';
+import { DocmemCommands, CommandResult } from './docmem_tools/docmem_tools.js';
+import { SystemCommands } from './system_tools/system_tools.js';
+import { Docmem } from './docmem_tools/docmem.js';
 
 export interface ExecutionResult {
   command: string;

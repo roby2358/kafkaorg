@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm build:*)",
+      "Bash(wc:*)",
+      "Bash(find:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm install:*)",
+      "Bash(timeout 10 pnpm dev:*)",
+      "Bash(pip3 install:*)",
+      "Bash(sudo apt update:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv run:*)",
+      "Bash(podman ps:*)"
+    ]
+  }
+}

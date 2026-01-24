@@ -245,10 +245,6 @@ export class Docmem {
     return this.postgres.getChildren(parentId);
   }
 
-  private async _insertNode(node: Node): Promise<void> {
-    await this.postgres.insertNode(node);
-  }
-
   async _getRoot(): Promise<Node> {
     const root = await this._getRootById(this.docmemId);
     if (!root) {

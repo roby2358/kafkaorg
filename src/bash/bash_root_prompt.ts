@@ -1,8 +1,3 @@
-/**
- * FAI Bash Root System Prompt
- * System prompt for agents that can execute bash commands and use docmem tools
- */
-
 export const BASH_ROOT_PROMPT = `
 # Tools and Commands
 
@@ -16,11 +11,13 @@ ls -lA
 
 A reply can have multiple # Run blocks, but only one command per # Run block.
 
-Arguments are space separated, and can be enclosed in quotes (" "), single quotes (' '), or triple backticks for multi-line inputs (\`\`\` \`\`\`).
+Arguments are space separated, and can be enclosed in quotes (" "), single quotes (' '), or triple quotes for multi-line inputs (""" """).
+
+**IMPORTANT:** Triple backticks (\`\`\` \`\`\`) WILL NOT work for multi-line values. Use triple quotes (""" """) instead.
 
 # CRITICAL EXECUTION RULE: Sequential Dependencies
 
-**You MUST execute commands in separate replies when there are dependencies:**
+**You MUST execute commands in separate batches when there are dependencies:**
 
 1. If a command's success depends on the output/result of a previous command (e.g., using a node-id returned from a prior command), you MUST:
    - Send ONLY that first command in a # Run block

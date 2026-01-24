@@ -4,11 +4,17 @@
  */
 
 export const DOCMEM_COMMANDS = `
-# Docmem Commands
+# Docmem Operations
 
 ## Overview
 
 Docmem organizes documents as a hierarchical tree structure. Each node in the tree represents a unit of content with metadata (context-type, context-name, context-value). The root node serves as the entry point, and child nodes can be appended, inserted, moved, copied, or deleted. The root node has a node-id just like any other node.
+
+The intent is to keep the context window smaller by moving thought processes and work products in system prompts.
+
+Try to keep as much as you can in docmem documents without repeating in the context window.
+
+Docmems are durable. They can be shared across conversations.
 
 ## Important Concepts
 
@@ -31,7 +37,8 @@ Docmem organizes documents as a hierarchical tree structure. Each node in the tr
 ### Content
 - Content is the actual text stored in the node
 - Content MAY be empty (use "" or '' for empty content)
-- For multi-line content, use triple backticks (\`\`\` \`\`\`)
+- For multi-line content, use triple quotes (""" """)
+- **IMPORTANT:** Triple backticks (\`\`\` \`\`\`) WILL NOT work for multi-line content
 
 ### Docmem Instance
 - Most commands require an active docmem instance (a docmem root must be created or loaded first)
@@ -40,7 +47,7 @@ Docmem organizes documents as a hierarchical tree structure. Each node in the tr
 
 ### Command Response Format
 - Successful commands return: \`result> <command-name> <action>: <node-id>\` or similar
-- Query commands return text data: \`result> <command-name>:\ntext\`
+- Query commands return text data: \`result> <command-name>:\\ntext\`
 - Failed commands return: \`error> <error-message>\`
 - Extract node-ids from the result text (they appear after colons)
 
@@ -115,7 +122,6 @@ Copies a node (and its entire subtree) to a new position relative to a target no
   - \`--before\`: Copy becomes a sibling immediately before target-id (same parent as target)
   - \`--after\`: Copy becomes a sibling immediately after target-id (same parent as target)
 - **Returns:** \`result> docmem-copy-node <action>: <new-node-id>\`
-- **Requirements:** node-id and target-id MUST belong to the same docmem root (same tree)
 
 ### Deletion
 
@@ -128,37 +134,12 @@ Deletes a node and its entire subtree (all descendants).
 
 ### Query Operations
 
-#### docmem-find <node-id>
-Retrieves a single node by its ID.
-- **Parameters:**
-  - \`node-id\`: Node ID to find (must exist)
-- **Returns:** \`result> docmem-find:\n<JSON>\` - Complete node object with all fields including text, context, metadata
-
-#### docmem-serialize <node-id>
-Returns all nodes in the subtree starting from the specified node, in depth-first traversal order (includes the starting node and all descendants).
-- **Parameters:**
-  - \`node-id\`: Starting node ID (must exist)
-- **Returns:** \`result> docmem-serialize:\n<JSON>\` - Array of node objects in traversal order
-- **Use case:** Get all content from a subtree for document generation or export
-
 #### docmem-structure <node-id>
 Returns the hierarchical structure and metadata without text content (efficient for navigation).
 - **Parameters:**
   - \`node-id\`: Starting node ID (must exist)
-- **Returns:** \`result> docmem-structure:\n<JSON>\` - Array of node objects with all fields EXCEPT text (includes id, parentId, order, tokenCount, context fields, timestamps)
+- **Returns:** \`result> docmem-structure:\\n\` - Array of node objects with all fields EXCEPT text (includes id, parentId, order, tokenCount, context fields, timestamps)
 - **Use case:** Inspect tree structure without loading full text content
-
-#### docmem-expand-to-length <node-id> <maxTokens>
-Returns nodes from the subtree up to a maximum token count, using breadth-first expansion.
-- **Parameters:**
-  - \`node-id\`: Starting node ID (must exist)
-  - \`maxTokens\`: Maximum total token count (must be a number)
-- **Returns:** \`result> docmem-expand-to-length:\n<JSON>\` - Array of node objects that fit within the token limit
-- **Behavior:**
-  - Always includes the starting node first
-  - Expands breadth-first to depth 1, then expands children in order
-  - Stops when adding more nodes would exceed maxTokens
-  - Useful for context window management in LLM prompts
 
 ### Summary Operations
 
@@ -185,6 +166,11 @@ Creates a summary node that becomes the parent of a contiguous range of sibling 
 #### docmem-get-all-roots
 Returns a list of all root node IDs in the system.
 - **Parameters:** None
-- **Returns:** \`result> docmem-get-all-roots:\n<JSON>\` - Array of root node objects
+- **Returns:** \`result> docmem-get-all-roots:\\n<JSON>\` - Array of root node objects
 - **Note:** This command does NOT require an active docmem instance.
 `;
+
+// Additional commands available but less commonly used:
+// - docmem-find <node-id> - Retrieves a single node by its ID
+// - docmem-expand-to-length <node-id> <maxTokens> - Returns nodes up to token limit
+// - docmem-serialize <node-id> - Returns all nodes in subtree (depth-first traversal)

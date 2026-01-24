@@ -1,5 +1,5 @@
 import { Router, type IRouter, Request, Response } from 'express';
-import { Docmem } from '../../docmem/docmem.js';
+import { Docmem } from '../../docmem_tools/docmem.js';
 
 const router: IRouter = Router();
 
