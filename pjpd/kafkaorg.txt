@@ -33,6 +33,11 @@ Status: ToDo
 ID: docmem-fmt-ds8r
 Replace JSON format in docmem-get-all-roots with compact metadata format to reduce token usage and improve readability
 ---
+Priority:   70
+Status: ToDo
+ID: agent-meta-4bsk
+Implement agent self-documentation via dedicated docmem containing three nodes: summary node (brief description for other agents), instructions node (interaction guidelines for other agents), and system prompt node (the agent's actual system prompt)
+---
 Priority:   60
 Status: ToDo
 ID: phase2-3ntk
@@ -57,6 +62,11 @@ Priority:   60
 Status: ToDo
 ID: llm-view-h66s
 Implement LLM request/response viewer in monitoring UI
+---
+Priority:   60
+Status: ToDo
+ID: docmem-perm-9478
+Fix precondition preventing agents from modifying docmems they didn't create - agents should be able to work with any existing docmem
 ---
 Priority:   50
 Status: ToDo
