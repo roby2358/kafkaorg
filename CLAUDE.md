@@ -83,6 +83,7 @@ npx peggy --format es -o src/bash/command_parser.js src/bash/command.pegjs
 ## Specifications
 
 Technical specifications are maintained in `SPEC*.md` files:
+- **SPEC_AGENT_COMMUNICATIONS.md**: Agent communication protocol via Kafka and docmem
 - **SPEC_DOCMEM.md**: Complete docmem specification
 - **SPEC_DOCMEM_ATOMICITY.md**: Transaction and concurrency model for docmem
 - **SPEC_DOCMEM_SERIALIZATION.md**: Docmem serialization format and behavior
@@ -105,19 +106,22 @@ Technical specifications are maintained in `SPEC*.md` files:
 
 1. **Web Server (Express.js)** - HTTP API and WebSocket server for UI communication
 2. **Kafka Agents** - In-process consumers that listen to topics and process messages
-3. **PostgreSQL** - Stores users, agents, conversations (messages stored in Kafka topics)
-4. **WebSocket Handler** - Bidirectional communication between UI and agents via Kafka
+3. **PostgreSQL** - Stores users, agents, conversations, and message content (via docmem)
+4. **Kafka Topics** - Provide message sequencing and event ordering; content lives in docmem
+5. **WebSocket Handler** - Bidirectional communication between UI and agents
 
 ### Key Components
 
 **`src/index.ts`** - Application entry point. Initializes database, starts Express server, sets up WebSocket connections, and handles graceful shutdown.
 
 **`src/kafka/agent.ts`** - Kafka agent implementation. Each agent:
-- Consumes messages from its assigned topic
-- Maintains conversation history with system prompts
+- Owns a single Kafka topic with multiplexed conversations
+- Consumes from its own topic, filters by conversation_id and agent_id
+- Fetches message content from docmem (PostgreSQL)
+- Maintains conversation history caches per conversation
 - Uses OpenRouter API to generate responses
 - Executes tools via the interpreter
-- Produces responses back to the topic
+- Produces responses back to the same topic
 
 **`src/interpreter.ts`** - Tool execution layer. Processes agent responses, parses structured commands (speak, thought, action), and executes tools.
 
@@ -162,7 +166,7 @@ Technical specifications are maintained in `SPEC*.md` files:
 
 **conversations** - Conversation sessions:
 - Links user + agent (via foreign keys)
-- Messages stored in Kafka topics, not database
+- Message content stored in docmem (PostgreSQL), Kafka provides sequencing
 
 ### Docmem System
 
@@ -179,13 +183,16 @@ See SPEC_DOCMEM.md and SPEC_DOCMEM_ATOMICITY.md for complete specifications.
 
 ### Agent Communication Pattern
 
-1. User sends message via WebSocket or HTTP API
-2. Message is produced to agent's Kafka topic
-3. Agent consumes message, adds to conversation history
-4. Agent calls OpenRouter API with system prompt + history
-5. Interpreter processes response, executes tools
-6. Agent produces response message back to topic
-7. WebSocket handler streams response to UI
+1. User sends plain text via WebSocket
+2. UI agent creates docmem node with context `text:agent:ui-{id}` and message content
+3. UI agent produces Kafka record (JSON) to conversational agent's topic with node reference
+4. Conversational agent consumes record, fetches node content from docmem
+5. Conversational agent builds message list (role-relative perspective), calls OpenRouter API
+6. Conversational agent creates response node with context `text:agent:conv-{id}`
+7. Conversational agent produces Kafka record back to same topic
+8. UI agent consumes response, fetches content, streams plain text to WebSocket
+
+**Key architecture**: Kafka provides sequencing, docmem provides content, agents maintain cached message lists. See SPEC_AGENT_COMMUNICATIONS.md for details.
 
 ### System Prompts
 
@@ -231,6 +238,7 @@ Tool-specific prompts are maintained alongside their implementations:
 
 ## Important Files to Reference
 
+- **SPEC_AGENT_COMMUNICATIONS.md** - Agent communication protocol via Kafka and docmem
 - **SPEC_DOCMEM.md** - Complete docmem specification
 - **SPEC_DOCMEM_ATOMICITY.md** - Transaction and concurrency model
 - **SPEC_COMMAND_PARSER.md** - Bash parser specification
