@@ -104,19 +104,20 @@ function connectWebSocket() {
     };
     
     ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
+        // Check if it's a JSON control message or plain text content
+        try {
+            const data = JSON.parse(event.data);
 
-        if (data.type === 'subscribed') {
-            console.log('Subscribed to conversation:', data);
-        } else if (data.type === 'connected') {
-            console.log('Connected to UI agent:', data);
-        } else if (data.type === 'agent_message') {
-            // Agent message received
-            appendMessage('agent', data.message);
-        } else if (data.type === 'error') {
-            console.error('WebSocket error:', data.message);
-        } else {
-            console.log('Unknown message type:', data);
+            if (data.type === 'subscribed') {
+                console.log('Subscribed to conversation:', data);
+            } else if (data.type === 'error') {
+                console.error('WebSocket error:', data.message);
+            } else {
+                console.log('Unknown control message:', data);
+            }
+        } catch (e) {
+            // Not JSON - treat as plain text message from agent
+            appendMessage('agent', event.data);
         }
     };
     
@@ -132,28 +133,21 @@ function connectWebSocket() {
 function initChat() {
     const userInput = document.getElementById('user-input');
     const sendBtn = document.getElementById('send-btn');
-    
-    async function sendMessage() {
+
+    function sendMessage() {
         const message = userInput.value.trim();
         if (!message) return;
-        
+
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+            appendMessage('system', 'Error: WebSocket not connected');
+            return;
+        }
+
         appendMessage(currentUserName, message);
         userInput.value = '';
-        
-        try {
-            await fetch('/api/user-message', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    conversation_id: conversationId,
-                    user_id: currentUserId,
-                    message: message
-                })
-            });
-            // Response will come via WebSocket
-        } catch (error) {
-            appendMessage('agent', 'Error: Could not send message');
-        }
+
+        // Send plain text via WebSocket
+        ws.send(message);
     }
     
     sendBtn.addEventListener('click', sendMessage);

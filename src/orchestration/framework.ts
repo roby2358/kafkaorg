@@ -91,8 +91,9 @@ export class OrchestrationFramework {
       ],
     });
 
-    // Create topic between UI and Conversational agents
-    const topicName = `${uiAgentId}-${conversationalAgentId}`;
+    // Create agent-owned topic (conversational agent's topic)
+    // Both agents will subscribe to this topic
+    const topicName = conversationalAgentId;
 
     // Create Kafka topic
     await createTopic(topicName);
@@ -234,20 +235,20 @@ export class OrchestrationFramework {
 
     const topicName = topic.name;
 
-    // Spawn UI Agent
+    // Spawn UI Agent (subscribes to conversational agent's topic)
     const uiAgent = new UIAgent(
       uiAgentRecord.id,
       conversationId,
       uiAgentRecord.prototypeId,
-      topicName
+      topicName  // Conversational agent's topic
     );
 
-    // Spawn Conversational Agent
+    // Spawn Conversational Agent (subscribes to own topic)
     const conversationalAgent = new ConversationalAgent(
       convAgentRecord.id,
       conversationId,
       convAgentRecord.prototypeId,
-      topicName,
+      topicName,  // Own topic
       convAgentRecord.prototype.systemPrompt,
       convAgentRecord.prototype.model
     );
@@ -293,7 +294,7 @@ export class OrchestrationFramework {
     const agentsToStop: BaseAgent[] = [];
 
     // Find all agents for this conversation
-    for (const [agentId, agent] of this.runningAgents.entries()) {
+    for (const [_agentId, agent] of this.runningAgents.entries()) {
       if (agent.getConversationId() === conversationId) {
         agentsToStop.push(agent);
       }

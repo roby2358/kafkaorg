@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import swaggerUi from 'swagger-ui-express';
 import signinRouter from './api/signin.js';
 import signupRouter from './api/signup.js';
-import userMessageRouter from './api/user-message.js';
+// import userMessageRouter from './api/user-message.js';  // Old HTTP endpoint, replaced by WebSocket
 import conversationRouter from './api/conversation.js';
 import agentsRouter from './api/agents.js';
 import docmemRouter from './api/docmem.js';
@@ -80,7 +80,7 @@ router.get('/docmem.html', (_req, res) => {
 
 router.use('/api', signinRouter);
 router.use('/api', signupRouter);
-router.use('/api', userMessageRouter);
+// router.use('/api', userMessageRouter);  // Old HTTP endpoint, replaced by WebSocket
 router.use('/api', conversationRouter);
 router.use('/api', agentsRouter);
 router.use('/api', docmemRouter);

@@ -6,7 +6,6 @@ import { fileURLToPath } from 'url';
 import { initDb, closeDb } from './db/client.js';
 import { initSchema } from './db/init-schema.js';
 import { closeKafka } from './kafka/index.js';
-import { orchestrationFramework } from './orchestration/framework.js';
 import { setupWebSocket, closeAllConnections } from './websocket/conversation-handler.js';
 import routes from './routes/index.js';
 

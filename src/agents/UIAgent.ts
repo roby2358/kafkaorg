@@ -11,10 +11,18 @@
 import { WebSocket } from 'ws';
 import { BaseAgent } from './BaseAgent.js';
 import { ConversationMessage } from '../kafka/types.js';
+import { Docmem } from '../docmem_tools/docmem.js';
+import {
+  createConversationDocmem,
+  loadConversationDocmem,
+  createMessageNode,
+  fetchMessageNode,
+} from '../docmem_tools/conversation_docmem.js';
 
 export class UIAgent extends BaseAgent {
   private ws: WebSocket | null = null;
-  private conversationalAgentTopic: string | null = null;
+  private conversationalAgentTopic: string;
+  private conversationDocmem: Docmem | null = null;
 
   constructor(
     id: string,
@@ -37,10 +45,17 @@ export class UIAgent extends BaseAgent {
 
     this.running = true;
 
-    // Subscribe to the topic connecting UI ↔ Conversational agent
-    if (this.conversationalAgentTopic) {
-      await this.subscribeToTopic(this.conversationalAgentTopic, false);
+    // Try to load existing conversation docmem, or create new one
+    try {
+      this.conversationDocmem = await loadConversationDocmem(this.conversationId);
+      console.log(`UI Agent ${this.id}: Loaded existing conversation docmem`);
+    } catch (error) {
+      console.log(`UI Agent ${this.id}: Creating new conversation docmem`);
+      this.conversationDocmem = await createConversationDocmem(this.conversationId);
     }
+
+    // Subscribe to the conversational agent's topic (both agents use same topic)
+    await this.subscribeToTopic(this.conversationalAgentTopic, true);
 
     console.log(`UI Agent ${this.id} started`);
   }
@@ -51,19 +66,14 @@ export class UIAgent extends BaseAgent {
   attachWebSocket(ws: WebSocket): void {
     this.ws = ws;
 
+    // WebSocket protocol: plain text in/out
     ws.on('message', async (data: Buffer) => {
       try {
-        const payload = JSON.parse(data.toString());
-
-        if (payload.type === 'user_message' && payload.message) {
-          await this.handleUserMessage(payload.message, payload.user_id);
-        }
+        const message = data.toString();  // Plain text message
+        await this.handleUserMessage(message);
       } catch (error) {
         console.error(`UI Agent ${this.id}: Error processing WebSocket message:`, error);
-        this.sendToWebSocket({
-          type: 'error',
-          message: 'Failed to process message',
-        });
+        this.sendToWebSocket(`Error: Failed to process message`);
       }
     });
 
@@ -76,34 +86,36 @@ export class UIAgent extends BaseAgent {
       console.error(`UI Agent ${this.id}: WebSocket error:`, error);
     });
 
-    // Send connection acknowledgment
-    this.sendToWebSocket({
-      type: 'connected',
-      conversation_id: this.conversationId,
-      agent_id: this.id,
-    });
-
     console.log(`UI Agent ${this.id}: WebSocket attached`);
   }
 
   /**
-   * Handle user message from WebSocket
+   * Handle user message from WebSocket (plain text)
    */
-  private async handleUserMessage(message: string, userId: string): Promise<void> {
-    if (!this.conversationalAgentTopic) {
-      throw new Error('Conversational agent topic not set');
+  private async handleUserMessage(content: string): Promise<void> {
+    if (!this.conversationDocmem) {
+      console.error(`UI Agent ${this.id}: Conversation docmem not initialized`);
+      return;
     }
 
-    // Create message for conversational agent
-    const msg = this.createMessage(message, {
-      userId,
-      agentId: null,
-    });
+    // Create docmem node with context text:agent:{agentId}
+    const node = await createMessageNode(this.conversationDocmem, this.id, content);
 
-    // Send to conversational agent topic
-    await this.sendMessage(this.conversationalAgentTopic, msg);
+    // Determine if this is the first message (create) or continuation (append)
+    const rootNode = await this.conversationDocmem._getRoot();
+    const nodes = await this.conversationDocmem.serialize(rootNode.id);
+    const action = nodes.length === 2 ? 'create' : 'append';  // Root + 1 message = create
 
-    console.log(`UI Agent ${this.id}: Forwarded user message to conversational agent`);
+    // Send Kafka record to conversational agent topic
+    const message = this.createMessage(
+      rootNode.id,
+      node.id,
+      action
+    );
+
+    await this.sendMessage(this.conversationalAgentTopic, message);
+
+    console.log(`UI Agent ${this.id}: Sent user message to conversational agent`);
   }
 
   /**
@@ -111,27 +123,32 @@ export class UIAgent extends BaseAgent {
    */
   async handleMessage(
     message: ConversationMessage,
-    topic: string
+    _topic: string
   ): Promise<void> {
-    // Only forward agent messages (not user messages)
-    if (message.agent_id && !message.user_id) {
-      this.sendToWebSocket({
-        type: 'agent_message',
-        message: message.message,
-        agent_id: message.agent_id,
-        timestamp: message.timestamp,
-      });
-
-      console.log(`UI Agent ${this.id}: Forwarded agent message to WebSocket`);
+    if (!this.conversationDocmem) {
+      console.error(`UI Agent ${this.id}: Conversation docmem not initialized`);
+      return;
     }
+
+    // Fetch the message content from docmem
+    const node = await fetchMessageNode(this.conversationDocmem, message.node_id);
+    if (!node) {
+      console.error(`UI Agent ${this.id}: Node ${message.node_id} not found`);
+      return;
+    }
+
+    // Send plain text to WebSocket
+    this.sendToWebSocket(node.text);
+
+    console.log(`UI Agent ${this.id}: Forwarded message to WebSocket`);
   }
 
   /**
-   * Send message to WebSocket
+   * Send plain text message to WebSocket
    */
-  private sendToWebSocket(payload: unknown): void {
+  private sendToWebSocket(text: string): void {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(payload));
+      this.ws.send(text);  // Plain text, not JSON
     }
   }
 

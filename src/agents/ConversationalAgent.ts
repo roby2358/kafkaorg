@@ -11,17 +11,24 @@
 
 import { BaseAgent } from './BaseAgent.js';
 import { ConversationMessage } from '../kafka/types.js';
-import { OpenRouterAPI, ChatMessage } from '../agents/OpenRouterAPI.js';
+import { OpenRouterAPI } from '../agents/OpenRouterAPI.js';
 import { parse } from '../bash/index.js';
 import { Docmem } from '../docmem_tools/docmem.js';
 import { DocmemCommands } from '../docmem_tools/docmem_tools.js';
 import { SystemCommands } from '../system_tools/system_tools.js';
+import {
+  createConversationDocmem,
+  loadConversationDocmem,
+  createMessageNode,
+  fetchMessageNode,
+  buildMessageList,
+} from '../docmem_tools/conversation_docmem.js';
 
 export class ConversationalAgent extends BaseAgent {
-  private uiAgentTopic: string | null = null;
+  private ownTopic: string;
   private openRouter: OpenRouterAPI | null = null;
-  private userConversationHistory: ChatMessage[] = [];
   private systemPrompt: string;
+  private conversationDocmem: Docmem | null = null;
 
   // Tool execution
   private docmemCommands: DocmemCommands | null = null;
@@ -31,12 +38,12 @@ export class ConversationalAgent extends BaseAgent {
     id: string,
     conversationId: string,
     prototypeId: number,
-    uiAgentTopic: string,
+    ownTopic: string,
     systemPrompt: string,
     model: string
   ) {
     super(id, conversationId, prototypeId);
-    this.uiAgentTopic = uiAgentTopic;
+    this.ownTopic = ownTopic;
     this.systemPrompt = systemPrompt;
 
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -58,18 +65,17 @@ export class ConversationalAgent extends BaseAgent {
 
     this.running = true;
 
-    // Initialize conversation history with system prompt
-    this.userConversationHistory = [
-      {
-        role: 'system',
-        content: this.systemPrompt,
-      },
-    ];
-
-    // Subscribe to UI agent topic
-    if (this.uiAgentTopic) {
-      await this.subscribeToTopic(this.uiAgentTopic, false);
+    // Try to load existing conversation docmem, or create new one
+    try {
+      this.conversationDocmem = await loadConversationDocmem(this.conversationId);
+      console.log(`Conversational Agent ${this.id}: Loaded existing conversation docmem`);
+    } catch (error) {
+      console.log(`Conversational Agent ${this.id}: Creating new conversation docmem`);
+      this.conversationDocmem = await createConversationDocmem(this.conversationId);
     }
+
+    // Subscribe to own topic (agent-owned topic with conversation multiplexing)
+    await this.subscribeToTopic(this.ownTopic, true);
 
     console.log(`Conversational Agent ${this.id} started`);
   }
@@ -81,38 +87,44 @@ export class ConversationalAgent extends BaseAgent {
     message: ConversationMessage,
     _topic: string
   ): Promise<void> {
-    // Handle user messages from UI agent
-    if (message.user_id && !message.agent_id) {
-      await this.handleUserMessage(message);
-    }
+    // All messages that pass the filtering (not from me, matching conversation_id) are processed
+    await this.handleIncomingMessage(message);
   }
 
   /**
-   * Handle user message from UI agent
+   * Handle incoming message (from UI agent or tool results)
    */
-  private async handleUserMessage(message: ConversationMessage): Promise<void> {
-    console.log(`Conversational Agent ${this.id}: Received user message: ${message.message}`);
-
-    if (!this.openRouter) {
-      await this.respondToUI('Error: OpenRouter API key not configured');
+  private async handleIncomingMessage(message: ConversationMessage): Promise<void> {
+    if (!this.conversationDocmem) {
+      console.error(`Conversational Agent ${this.id}: Conversation docmem not initialized`);
       return;
     }
 
-    // Add user message to history
-    this.userConversationHistory.push({
-      role: 'user',
-      content: message.message,
-    });
+    if (!this.openRouter) {
+      await this.respond('Error: OpenRouter API key not configured');
+      return;
+    }
+
+    // Fetch the message content from docmem
+    const node = await fetchMessageNode(this.conversationDocmem, message.node_id);
+    if (!node) {
+      console.error(`Conversational Agent ${this.id}: Node ${message.node_id} not found`);
+      return;
+    }
+
+    const content = node.text;
+    console.log(`Conversational Agent ${this.id}: Received message: ${content.substring(0, 100)}...`);
 
     try {
-      // Call LLM
-      const llmResponse = await this.openRouter.chat(this.userConversationHistory);
+      // Build message list using role-relative perspective
+      const messages = await buildMessageList(
+        this.conversationDocmem,
+        this.id,
+        this.systemPrompt
+      );
 
-      // Add LLM response to history
-      this.userConversationHistory.push({
-        role: 'assistant',
-        content: llmResponse,
-      });
+      // Call LLM
+      const llmResponse = await this.openRouter.chat(messages);
 
       // Check for # Run blocks
       const runBlocks = this.extractRunBlocks(llmResponse);
@@ -120,24 +132,24 @@ export class ConversationalAgent extends BaseAgent {
       if (runBlocks.length > 0) {
         console.log(`Conversational Agent ${this.id}: Found ${runBlocks.length} # Run blocks`);
 
-        // Process commands
+        // Send clean response (without # Run blocks) first
+        const cleanResponse = this.removeRunBlocks(llmResponse);
+        if (cleanResponse.trim()) {
+          await this.respond(cleanResponse);
+        }
+
+        // Process commands and send results
         for (const commandStr of runBlocks) {
           await this.processCommand(commandStr);
         }
-
-        // Send clean response (without # Run blocks) to UI
-        const cleanResponse = this.removeRunBlocks(llmResponse);
-        if (cleanResponse.trim()) {
-          await this.respondToUI(cleanResponse);
-        }
       } else {
-        // No commands, send response directly to UI
-        await this.respondToUI(llmResponse);
+        // No commands, send response directly
+        await this.respond(llmResponse);
       }
     } catch (error) {
       console.error(`Conversational Agent ${this.id}: Error:`, error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      await this.respondToUI(`Error: ${errorMessage}`);
+      await this.respond(`Error: ${errorMessage}`);
     }
   }
 
@@ -145,6 +157,11 @@ export class ConversationalAgent extends BaseAgent {
    * Process a command from # Run block
    */
   private async processCommand(commandStr: string): Promise<void> {
+    if (!this.conversationDocmem) {
+      console.error(`Conversational Agent ${this.id}: Conversation docmem not initialized`);
+      return;
+    }
+
     try {
       const args = parse(commandStr);
 
@@ -156,15 +173,15 @@ export class ConversationalAgent extends BaseAgent {
       // Execute tool commands directly
       const result = await this.executeCommand(args);
 
-      // Send result to UI
+      // Send tool result as a message with agent_id="tool"
       if (result.result) {
         const formattedResult = `\`\`\`\n${result.result}\n\`\`\``;
-        await this.respondToUI(formattedResult);
+        await this.sendToolResult(formattedResult);
       }
     } catch (error) {
       console.error(`Conversational Agent ${this.id}: Command execution failed:`, error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      await this.respondToUI(`Error: ${errorMessage}`);
+      await this.sendToolResult(`Error: ${errorMessage}`);
     }
   }
 
@@ -287,22 +304,57 @@ export class ConversationalAgent extends BaseAgent {
   }
 
   /**
-   * Send response to UI agent
+   * Send response to own topic (will be picked up by UI agent)
    */
-  private async respondToUI(message: string): Promise<void> {
-    if (!this.uiAgentTopic) {
-      console.error(`Conversational Agent ${this.id}: UI agent topic not set`);
+  private async respond(content: string): Promise<void> {
+    if (!this.conversationDocmem) {
+      console.error(`Conversational Agent ${this.id}: Conversation docmem not initialized`);
       return;
     }
 
-    const response = this.createMessage(message, {
-      userId: null,
-      agentId: this.id,
-    });
+    // Create docmem node with context text:agent:{agentId}
+    const node = await createMessageNode(this.conversationDocmem, this.id, content);
 
-    await this.sendMessage(this.uiAgentTopic, response);
+    // Send Kafka record to own topic
+    const rootNode = await this.conversationDocmem._getRoot();
+    const message = this.createMessage(
+      rootNode.id,
+      node.id,
+      'append'
+    );
 
-    console.log(`Conversational Agent ${this.id}: Sent response to UI`);
+    await this.sendMessage(this.ownTopic, message);
+
+    console.log(`Conversational Agent ${this.id}: Sent response`);
+  }
+
+  /**
+   * Send tool result to own topic with agent_id="tool"
+   */
+  private async sendToolResult(content: string): Promise<void> {
+    if (!this.conversationDocmem) {
+      console.error(`Conversational Agent ${this.id}: Conversation docmem not initialized`);
+      return;
+    }
+
+    // Create docmem node with context text:agent:tool
+    const node = await createMessageNode(this.conversationDocmem, 'tool', content);
+
+    // Send Kafka record to own topic with agent_id="tool"
+    const rootNode = await this.conversationDocmem._getRoot();
+    const message = {
+      version: '1.0.0',
+      conversation_id: this.conversationId,
+      agent_id: 'tool',  // Special agent_id for tool results
+      timestamp: new Date().toISOString(),
+      docmem_node_id: rootNode.id,
+      node_id: node.id,
+      action: 'tool_result',
+    };
+
+    await this.sendMessage(this.ownTopic, message);
+
+    console.log(`Conversational Agent ${this.id}: Sent tool result`);
   }
 
   /**

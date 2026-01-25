@@ -72,7 +72,7 @@ export abstract class BaseAgent {
     topicName: string,
     fromBeginning: boolean = true
   ): Promise<void> {
-    const groupId = `${this.id}-${topicName}`;
+    const groupId = `agent-${this.id}`;
     const consumer = createConsumer(groupId);
 
     await consumer.connect();
@@ -88,8 +88,13 @@ export abstract class BaseAgent {
         try {
           const parsed: ConversationMessage = JSON.parse(rawMessage);
 
-          // Only process messages for this conversation
+          // Filter by conversation_id (conversation multiplexing)
           if (parsed.conversation_id !== this.conversationId) {
+            return;
+          }
+
+          // Filter by agent_id (ignore own messages)
+          if (parsed.agent_id === this.id) {
             return;
           }
 
@@ -116,7 +121,10 @@ export abstract class BaseAgent {
     const producer = await getProducer();
     await producer.send({
       topic: topicName,
-      messages: [{ value: JSON.stringify(message) }],
+      messages: [{
+        key: message.conversation_id,  // Partition key for consistent routing
+        value: JSON.stringify(message)
+      }],
     });
 
     console.log(`Agent ${this.id}: Sent message to ${topicName}`);
@@ -126,20 +134,22 @@ export abstract class BaseAgent {
    * Create a standard message object
    */
   protected createMessage(
-    message: string,
+    docmemNodeId: string,
+    nodeId: string,
+    action: string,
     options?: {
-      userId?: string | null;
-      agentId?: string | null;
       command?: string[];
       correlationId?: string;
     }
   ): ConversationMessage {
     return {
+      version: '1.0.0',
       conversation_id: this.conversationId,
-      user_id: options?.userId ?? null,
-      agent_id: options?.agentId ?? this.id,
-      message,
+      agent_id: this.id,
       timestamp: new Date().toISOString(),
+      docmem_node_id: docmemNodeId,
+      node_id: nodeId,
+      action,
       command: options?.command,
       correlation_id: options?.correlationId,
     };

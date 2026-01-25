@@ -42,16 +42,18 @@ CREATE TABLE IF NOT EXISTS agent_instances (
 );
 
 -- Topics (agent-to-agent communication channels)
--- Tracks which topics exist for cleanup
+-- Agent-owned topics with conversation multiplexing
+-- Each conversational agent owns one topic, multiple conversations share it
 CREATE TABLE IF NOT EXISTS topics (
-    name VARCHAR(256) PRIMARY KEY,  -- "ui-agent-{uuid}-conversational-agent-{uuid}"
+    name VARCHAR(256) PRIMARY KEY,  -- "conversational-agent-{uuid}" (agent-owned)
     conversation_id VARCHAR(36) NOT NULL REFERENCES conversations(id),
     participant1_id VARCHAR(128) NOT NULL REFERENCES agent_instances(id),
     participant2_id VARCHAR(128) NOT NULL REFERENCES agent_instances(id),
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Messages are stored in Kafka topics, not in the database
+-- Message content is stored in docmem_nodes (PostgreSQL)
+-- Kafka topics provide sequencing and event ordering only
 
 -- Docmem nodes (hierarchical document memory)
 CREATE TABLE IF NOT EXISTS docmem_nodes (

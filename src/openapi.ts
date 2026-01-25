@@ -52,21 +52,7 @@ export const SignUpResponseSchema = registry.register(
   })
 );
 
-export const UserMessageRequestSchema = registry.register(
-  'UserMessageRequest',
-  z.object({
-    conversation_id: z.number().int().openapi({ example: 1 }),
-    user_id: z.string().openapi({ example: 'roby' }),
-    message: z.string().min(1).openapi({ example: 'Hello!' }),
-  })
-);
-
-export const UserMessageResponseSchema = registry.register(
-  'UserMessageResponse',
-  z.object({
-    sent: z.boolean().openapi({ example: true }),
-  })
-);
+// Old UserMessage schemas removed - messages now sent via WebSocket, not HTTP
 
 export const CreateConversationRequestSchema = registry.register(
   'CreateConversationRequest',
@@ -145,30 +131,7 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
-  method: 'post',
-  path: '/api/user-message',
-  summary: 'Send a message to the conversation (via Kafka)',
-  request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: UserMessageRequestSchema,
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      description: 'Message sent to Kafka topic',
-      content: {
-        'application/json': {
-          schema: UserMessageResponseSchema,
-        },
-      },
-    },
-  },
-});
+// Old /api/user-message endpoint removed - messages now sent via WebSocket
 
 registry.registerPath({
   method: 'post',
