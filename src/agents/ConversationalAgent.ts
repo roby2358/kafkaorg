@@ -87,7 +87,8 @@ export class ConversationalAgent extends BaseAgent {
     message: ConversationMessage,
     _topic: string
   ): Promise<void> {
-    // All messages that pass the filtering (not from me, matching conversation_id) are processed
+    // Process all messages (from UI agent or tool results)
+    // Tool results will cause the agent to loop back to the LLM
     await this.handleIncomingMessage(message);
   }
 
@@ -126,25 +127,30 @@ export class ConversationalAgent extends BaseAgent {
       // Call LLM
       const llmResponse = await this.openRouter.chat(messages);
 
-      // Check for # Run blocks
+      // Send response first (including # Run blocks so user sees what's being executed)
+      await this.respond(llmResponse);
+
+      // Check for # Run blocks and execute them
       const runBlocks = this.extractRunBlocks(llmResponse);
 
       if (runBlocks.length > 0) {
         console.log(`Conversational Agent ${this.id}: Found ${runBlocks.length} # Run blocks`);
 
-        // Send clean response (without # Run blocks) first
-        const cleanResponse = this.removeRunBlocks(llmResponse);
-        if (cleanResponse.trim()) {
-          await this.respond(cleanResponse);
+        // Collect all tool results
+        const toolResults: string[] = [];
+
+        for (const commandStr of runBlocks) {
+          const result = await this.executeCommandAndFormat(commandStr);
+          if (result) {
+            toolResults.push(result);
+          }
         }
 
-        // Process commands and send results
-        for (const commandStr of runBlocks) {
-          await this.processCommand(commandStr);
+        // Concatenate all tool results and send as a single message
+        if (toolResults.length > 0) {
+          const concatenatedResults = toolResults.join('\n\n');
+          await this.sendToolResult(concatenatedResults);
         }
-      } else {
-        // No commands, send response directly
-        await this.respond(llmResponse);
       }
     } catch (error) {
       console.error(`Conversational Agent ${this.id}: Error:`, error);
@@ -154,12 +160,12 @@ export class ConversationalAgent extends BaseAgent {
   }
 
   /**
-   * Process a command from # Run block
+   * Execute a command from # Run block and return formatted result
    */
-  private async processCommand(commandStr: string): Promise<void> {
+  private async executeCommandAndFormat(commandStr: string): Promise<string | null> {
     if (!this.conversationDocmem) {
       console.error(`Conversational Agent ${this.id}: Conversation docmem not initialized`);
-      return;
+      return null;
     }
 
     try {
@@ -167,21 +173,21 @@ export class ConversationalAgent extends BaseAgent {
 
       if (args.length === 0) {
         console.error(`Conversational Agent ${this.id}: Empty command`);
-        return;
+        return null;
       }
 
       // Execute tool commands directly
       const result = await this.executeCommand(args);
 
-      // Send tool result as a message with agent_id="tool"
+      // Return result without extra formatting
       if (result.result) {
-        const formattedResult = `\`\`\`\n${result.result}\n\`\`\``;
-        await this.sendToolResult(formattedResult);
+        return result.result;
       }
+      return null;
     } catch (error) {
       console.error(`Conversational Agent ${this.id}: Command execution failed:`, error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      await this.sendToolResult(`Error: ${errorMessage}`);
+      return `Error: ${errorMessage}`;
     }
   }
 
@@ -375,10 +381,4 @@ export class ConversationalAgent extends BaseAgent {
     return commands;
   }
 
-  /**
-   * Remove # Run blocks from response
-   */
-  private removeRunBlocks(response: string): string {
-    return response.replace(/#\s*Run\s*\n```(?:bash)?\s*\n[\s\S]*?```/g, '').trim();
-  }
 }

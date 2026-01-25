@@ -28,6 +28,11 @@ Status: ToDo
 ID: kafka-fmt-6jvr
 Establish and enforce consistent Kafka record format across all agents using docmem to ensure reliable message exchange and interoperability
 ---
+Priority:   70
+Status: ToDo
+ID: docmem-fmt-ds8r
+Replace JSON format in docmem-get-all-roots with compact metadata format to reduce token usage and improve readability
+---
 Priority:   60
 Status: ToDo
 ID: phase2-3ntk

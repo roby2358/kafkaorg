@@ -20,6 +20,7 @@ export interface ChatCompletionResponse {
       role: string;
       content: string;
     };
+    finish_reason?: string;
   }>;
   usage?: {
     prompt_tokens?: number;
@@ -118,14 +119,27 @@ export class OpenRouterAPI {
     
     // Validate response structure
     if (!data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
+      console.error('Invalid response - full data:', JSON.stringify(data, null, 2));
       throw new Error('API Error: Invalid response structure - no choices array');
     }
-    
-    if (!data.choices[0].message || !data.choices[0].message.content) {
-      throw new Error('API Error: Invalid response structure - missing message content');
+
+    if (!data.choices[0].message || data.choices[0].message.content === undefined || data.choices[0].message.content === null) {
+      console.error('Invalid message structure:', JSON.stringify(data.choices[0], null, 2));
+      throw new Error(`API Error: Invalid response structure - missing message content. Choice: ${JSON.stringify(data.choices[0])}`);
     }
-    
+
     const responseContent = data.choices[0].message.content;
+
+    // Check for empty response (model refused or hit limit)
+    if (responseContent.trim() === '') {
+      console.error('Empty response from model:', {
+        model: data.model,
+        completion_tokens: data.usage?.completion_tokens,
+        prompt_tokens: data.usage?.prompt_tokens,
+        finish_reason: data.choices[0].finish_reason,
+      });
+      throw new Error(`API Error: Model returned empty response (${data.usage?.completion_tokens || 0} completion tokens). This may indicate the prompt was too long, the model refused to respond, or hit a limit.`);
+    }
     
     // Log full response received
     console.log('=== RESPONSE FROM LLM ===');

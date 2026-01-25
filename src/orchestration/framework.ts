@@ -8,13 +8,13 @@
  * - Intercepts and handles start-conversation commands
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '../db/client.js';
 import { getProducer, createTopic } from '../kafka/client.js';
 import { ConversationMessage } from '../kafka/types.js';
 import { BaseAgent } from '../agents/BaseAgent.js';
 import { UIAgent } from '../agents/UIAgent.js';
 import { ConversationalAgent } from '../agents/ConversationalAgent.js';
+import { generateBase62Id } from '../utils/id-generator.js';
 import type { WebSocket } from 'ws';
 
 /**
@@ -47,7 +47,7 @@ export class OrchestrationFramework {
    * User ↔ UI Agent ↔ Conversational Agent
    */
   async createConversation(userId: string, description: string): Promise<string> {
-    const conversationId = uuidv4();
+    const conversationId = generateBase62Id();
 
     // Create conversation record
     await prisma.conversation.create({
@@ -71,8 +71,8 @@ export class OrchestrationFramework {
     }
 
     // Create agent instances
-    const uiAgentId = `ui-agent-${uuidv4()}`;
-    const conversationalAgentId = `conversational-agent-${uuidv4()}`;
+    const uiAgentId = `ui-agent-${generateBase62Id()}`;
+    const conversationalAgentId = `conversational-agent-${generateBase62Id()}`;
 
     await prisma.agentInstance.createMany({
       data: [

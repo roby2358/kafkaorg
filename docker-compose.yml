@@ -10,6 +10,7 @@ services:
       - "8822:8822"  # Express.js Web Server
     environment:
       - KAFKA_ADVERTISED_HOST=localhost
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
     volumes:
       - kafkaorg-data:/var/lib/postgresql/14/main
       - kafkaorg-kafka-logs:/tmp/kafka-logs
