@@ -1,37 +1,38 @@
 import { Router, type IRouter, Request, Response } from 'express';
 import { prisma } from '../../db/client.js';
-import { isAgentRunning, getAgent } from '../../kafka/index.js';
+import { orchestrationFramework } from '../../orchestration/framework.js';
 
 const router: IRouter = Router();
 
-// Get all agents with their running status
+// Get all agent instances with their running status
 router.get(
   '/agents',
   async (_req: Request, res: Response): Promise<void> => {
     try {
-      const agents = await prisma.agent.findMany({
-        where: {
-          deleted: null,
+      const agentInstances = await prisma.agentInstance.findMany({
+        include: {
+          prototype: true,
+          conversation: true,
         },
         orderBy: {
-          id: 'desc',
+          created: 'desc',
         },
       });
 
-      const agentsWithStatus = agents.map((agent) => {
-        const agentInstance = getAgent(agent.id);
-        const startTime = agentInstance?.getStartTime();
-        
+      const agentsWithStatus = agentInstances.map((instance) => {
+        const runningAgent = orchestrationFramework.getRunningAgent(instance.id);
+
         return {
-          id: agent.id,
-          name: agent.name,
-          topic: agent.topic,
-          model: agent.model,
-          active: agent.active,
-          running: isAgentRunning(agent.id),
-          startTime: startTime ? startTime.toISOString() : null,
-          created: agent.created.toISOString(),
-          updated: agent.updated.toISOString(),
+          id: instance.id,
+          type: instance.prototype.name,
+          role: instance.prototype.role,
+          model: instance.prototype.model,
+          conversation_id: instance.conversationId,
+          conversation_description: instance.conversation.description,
+          status: instance.status,
+          running: runningAgent?.isRunning() ?? false,
+          created: instance.created.toISOString(),
+          stopped: instance.stopped?.toISOString() ?? null,
         };
       });
 

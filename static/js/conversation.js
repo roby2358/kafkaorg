@@ -105,14 +105,18 @@ function connectWebSocket() {
     
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        
+
         if (data.type === 'subscribed') {
-            console.log('Subscribed to conversation');
-        } else if (data.type === 'message') {
+            console.log('Subscribed to conversation:', data);
+        } else if (data.type === 'connected') {
+            console.log('Connected to UI agent:', data);
+        } else if (data.type === 'agent_message') {
             // Agent message received
-            appendMessage('agent', data.data.message);
+            appendMessage('agent', data.message);
         } else if (data.type === 'error') {
             console.error('WebSocket error:', data.message);
+        } else {
+            console.log('Unknown message type:', data);
         }
     };
     

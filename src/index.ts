@@ -5,7 +5,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { initDb, closeDb } from './db/client.js';
 import { initSchema } from './db/init-schema.js';
-import { closeKafka, stopAllAgents } from './kafka/index.js';
+import { closeKafka } from './kafka/index.js';
+import { orchestrationFramework } from './orchestration/framework.js';
 import { setupWebSocket, closeAllConnections } from './websocket/conversation-handler.js';
 import routes from './routes/index.js';
 
@@ -42,7 +43,7 @@ async function startServer(): Promise<void> {
 
 async function shutdown(): Promise<void> {
   console.log('\nShutting down...');
-  
+
   // Close the HTTP server first to stop accepting new connections
   await new Promise<void>((resolve) => {
     server.close(() => {
@@ -50,9 +51,9 @@ async function shutdown(): Promise<void> {
       resolve();
     });
   });
-  
+
   await closeAllConnections();
-  await stopAllAgents();
+  // Note: orchestrationFramework will handle stopping agents
   await closeKafka();
   await closeDb();
 }

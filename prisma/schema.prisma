@@ -1,4 +1,4 @@
-// Prisma schema for kafkaorg
+// Prisma schema for kafkaorg - Multi-agent architecture
 generator client {
   provider = "prisma-client-js"
 }
@@ -18,48 +18,78 @@ model User {
   @@map("users")
 }
 
-model Agent {
-  id            Int            @id @default(autoincrement())
-  name          String         @db.VarChar(256)
-  topic         String         @db.VarChar(256)
-  model         String         @db.VarChar(256)
-  created       DateTime       @default(now())
-  updated       DateTime       @updatedAt
-  deleted       DateTime?
-  active        Boolean
-  conversations Conversation[]
+model AgentPrototype {
+  id            Int             @id @default(autoincrement())
+  name          String          @unique @db.VarChar(64)
+  role          String          @db.VarChar(256)
+  systemPrompt  String          @map("system_prompt") @db.Text
+  model         String          @db.VarChar(256)
+  created       DateTime        @default(now())
+  updated       DateTime        @updatedAt
+  instances     AgentInstance[]
 
-  @@map("agents")
+  @@map("agent_prototypes")
 }
 
 model Conversation {
-  id          Int       @id @default(autoincrement())
-  description String    @db.VarChar(1024)
-  userId      String?   @map("user_id") @db.VarChar(32)
-  agentId     Int       @map("agent_id")
-  created     DateTime  @default(now())
-  updated     DateTime  @updatedAt
-  user        User?     @relation(fields: [userId], references: [id])
-  agent       Agent     @relation(fields: [agentId], references: [id])
+  id          String          @id @db.VarChar(36)
+  userId      String?         @map("user_id") @db.VarChar(32)
+  description String?         @db.VarChar(1024)
+  created     DateTime        @default(now())
+  updated     DateTime        @updatedAt
+  user        User?           @relation(fields: [userId], references: [id])
+  agents      AgentInstance[]
+  topics      Topic[]
 
   @@map("conversations")
 }
 
+model AgentInstance {
+  id             String          @id @db.VarChar(128)
+  prototypeId    Int             @map("prototype_id")
+  conversationId String          @map("conversation_id") @db.VarChar(36)
+  status         String          @db.VarChar(16)
+  created        DateTime        @default(now())
+  stopped        DateTime?
+  prototype      AgentPrototype  @relation(fields: [prototypeId], references: [id])
+  conversation   Conversation    @relation(fields: [conversationId], references: [id])
+  topicsAsP1     Topic[]         @relation("Participant1")
+  topicsAsP2     Topic[]         @relation("Participant2")
+
+  @@index([conversationId])
+  @@index([status])
+  @@map("agent_instances")
+}
+
+model Topic {
+  name           String        @id @db.VarChar(256)
+  conversationId String        @map("conversation_id") @db.VarChar(36)
+  participant1Id String        @map("participant1_id") @db.VarChar(128)
+  participant2Id String        @map("participant2_id") @db.VarChar(128)
+  created        DateTime      @default(now())
+  conversation   Conversation  @relation(fields: [conversationId], references: [id])
+  participant1   AgentInstance @relation("Participant1", fields: [participant1Id], references: [id])
+  participant2   AgentInstance @relation("Participant2", fields: [participant2Id], references: [id])
+
+  @@index([conversationId])
+  @@map("topics")
+}
+
 model DocmemNode {
-  id           String        @id @db.VarChar(32)
-  parentId     String?       @map("parent_id") @db.VarChar(32)
-  text         String        @db.Text
-  orderValue   Float         @map("order_value")
-  tokenCount   Int           @map("token_count")
-  createdAt    DateTime      @map("created_at") @default(now())
-  updatedAt    DateTime      @map("updated_at") @updatedAt
-  contextType  String        @map("context_type") @db.VarChar(24)
-  contextName  String        @map("context_name") @db.VarChar(24)
-  contextValue String        @map("context_value") @db.VarChar(24)
-  readonly     Int           @default(0)
-  hash         String?       @db.VarChar(128)
-  parent       DocmemNode?   @relation("NodeHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
-  children     DocmemNode[]  @relation("NodeHierarchy")
+  id           String       @id @db.VarChar(32)
+  parentId     String?      @map("parent_id") @db.VarChar(32)
+  text         String       @db.Text
+  orderValue   Float        @map("order_value")
+  tokenCount   Int          @map("token_count")
+  createdAt    DateTime     @map("created_at") @default(now())
+  updatedAt    DateTime     @map("updated_at") @updatedAt
+  contextType  String       @map("context_type") @db.VarChar(24)
+  contextName  String       @map("context_name") @db.VarChar(24)
+  contextValue String       @map("context_value") @db.VarChar(24)
+  readonly     Int          @default(0)
+  hash         String?      @db.VarChar(128)
+  parent       DocmemNode?  @relation("NodeHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children     DocmemNode[] @relation("NodeHierarchy")
 
   @@index([parentId])
   @@index([parentId, orderValue])

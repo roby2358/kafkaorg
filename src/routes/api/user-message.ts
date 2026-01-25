@@ -1,6 +1,6 @@
 import { Router, type IRouter, Request, Response } from 'express';
 import { prisma } from '../../db/client.js';
-import { getProducer, ConversationMessage } from '../../kafka/index.js';
+import { orchestrationFramework } from '../../orchestration/framework.js';
 
 const router: IRouter = Router();
 
@@ -22,38 +22,59 @@ router.post(
       return;
     }
 
-    // Look up conversation with agent (to get topic)
-    const conversation = await prisma.conversation.findUnique({
-      where: { id: conversation_id },
-      include: { agent: true },
-    });
+    try {
+      // Look up conversation and get the main topic (ui-agent <-> conversational-agent)
+      const conversation = await prisma.conversation.findUnique({
+        where: { id: conversation_id },
+        include: {
+          topics: true,
+          agents: {
+            include: { prototype: true },
+          },
+        },
+      });
 
-    if (!conversation) {
-      res.status(404).json({ error: 'Conversation not found' });
-      return;
+      if (!conversation) {
+        res.status(404).json({ error: 'Conversation not found' });
+        return;
+      }
+
+      // Find the UI agent
+      const uiAgent = conversation.agents.find(a => a.prototype.name === 'ui-agent');
+      if (!uiAgent) {
+        res.status(500).json({ error: 'UI agent not found for conversation' });
+        return;
+      }
+
+      // Find the main topic (connecting UI and conversational agents)
+      const mainTopic = conversation.topics.find(t =>
+        t.participant1Id === uiAgent.id || t.participant2Id === uiAgent.id
+      );
+
+      if (!mainTopic) {
+        res.status(500).json({ error: 'Main topic not found for conversation' });
+        return;
+      }
+
+      // Send message to the topic
+      const kafkaMessage = {
+        conversation_id,
+        user_id,
+        agent_id: null,
+        message,
+        timestamp: new Date().toISOString(),
+      };
+
+      await orchestrationFramework.sendMessage(mainTopic.name, kafkaMessage);
+
+      res.json({ sent: true, topic: mainTopic.name });
+    } catch (error) {
+      console.error('Failed to send user message:', error);
+      res.status(500).json({
+        error: 'Failed to send message',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
-
-    if (!conversation.agent) {
-      res.status(500).json({ error: 'Conversation missing agent' });
-      return;
-    }
-
-    // Produce message to Kafka (using agent's topic)
-    const producer = await getProducer();
-    const kafkaMessage: ConversationMessage = {
-      conversation_id,
-      user_id,
-      agent_id: null,
-      message,
-      timestamp: new Date().toISOString(),
-    };
-
-    await producer.send({
-      topic: conversation.agent.topic,
-      messages: [{ value: JSON.stringify(kafkaMessage) }],
-    });
-
-    res.json({ sent: true });
   }
 );
 

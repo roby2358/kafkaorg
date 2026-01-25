@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "tsc && mkdir -p dist/bash && cp src/bash/command_parser.js dist/bash/",
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -29,6 +29,7 @@
     "kafkajs": "^2.2.4",
     "pg": "^8.13.0",
     "swagger-ui-express": "^5.0.1",
+    "uuid": "^11.0.4",
     "ws": "^8.19.0",
     "zod": "^3.23.8"
   },
@@ -37,6 +38,7 @@
     "@types/node": "^22.7.0",
     "@types/pg": "^8.11.10",
     "@types/swagger-ui-express": "^4.1.8",
+    "@types/uuid": "^10.0.0",
     "@types/ws": "^8.18.1",
     "prisma": "^5.19.0",
     "tsx": "^4.19.0",

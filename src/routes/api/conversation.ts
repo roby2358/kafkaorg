@@ -1,6 +1,6 @@
 import { Router, type IRouter, Request, Response } from 'express';
 import { prisma } from '../../db/client.js';
-import { createTopic, Agent, registerAgent } from '../../kafka/index.js';
+import { orchestrationFramework } from '../../orchestration/framework.js';
 
 const router: IRouter = Router();
 
@@ -22,54 +22,41 @@ router.post(
       return;
     }
 
-    // Create agent first with temporary topic (will update with agent ID)
-    const agent = await prisma.agent.create({
-      data: {
-        name: `Agent ${Date.now()}`,
-        topic: `agent-${Date.now()}`, // temporary, will update after we have the ID
-        model: 'anthropic/claude-haiku-4.5',
-        active: true,
-      },
-    });
-
-    // Update agent topic to use agent ID (agent-topic pair)
-    const topic = `agent-${agent.id}`;
-    const updatedAgent = await prisma.agent.update({
-      where: { id: agent.id },
-      data: { 
-        topic,
-        name: `conversation-agent-${agent.id}`,
-      },
-    });
-
-    // Create Kafka topic (agent owns the topic)
-    await createTopic(topic);
-
-    // Start the agent (agent starts the topic)
-    const agentInstance = new Agent(updatedAgent.id, updatedAgent.name, topic, updatedAgent.model);
-    registerAgent(agentInstance);
-    await agentInstance.start();
-
-    // Create conversation linked to agent (conversation subscribes to agent's topic)
-    const description = `Conversation started ${new Date().toISOString()}`;
-    const conversation = await prisma.conversation.create({
-      data: {
-        description,
-        userId: user_id,
-        agentId: updatedAgent.id,
-      },
-    });
-
-    res.json({
-      conversation: {
-        id: conversation.id,
-        description,
-        topic,
+    try {
+      // Create conversation with multi-agent architecture
+      const description = `Conversation started ${new Date().toISOString()}`;
+      const conversationId = await orchestrationFramework.createConversation(
         user_id,
-        agent_id: updatedAgent.id,
-        created: conversation.created.toISOString(),
-      },
-    });
+        description
+      );
+
+      // Spawn and start the agents
+      const { uiAgent, conversationalAgent } = await orchestrationFramework.spawnConversationAgents(
+        conversationId
+      );
+
+      // Get the topic connecting UI and Conversational agents
+      const topics = await orchestrationFramework.getConversationTopics(conversationId);
+      const mainTopic = topics[0];
+
+      res.json({
+        conversation: {
+          id: conversationId,
+          description,
+          topic: mainTopic?.name || '',
+          user_id,
+          ui_agent_id: uiAgent.getId(),
+          conversational_agent_id: conversationalAgent.getId(),
+          created: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      console.error('Failed to create conversation:', error);
+      res.status(500).json({
+        error: 'Failed to create conversation',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
   }
 );
 
@@ -77,16 +64,17 @@ router.post(
 router.get(
   '/conversation/:id',
   async (req: Request, res: Response): Promise<void> => {
-    const id = parseInt(req.params.id, 10);
-
-    if (isNaN(id)) {
-      res.status(400).json({ error: 'Invalid conversation ID' });
-      return;
-    }
+    const id = req.params.id;
 
     const conversation = await prisma.conversation.findUnique({
       where: { id },
-      include: { user: true, agent: true },
+      include: {
+        user: true,
+        agents: {
+          include: { prototype: true },
+        },
+        topics: true,
+      },
     });
 
     if (!conversation) {
@@ -94,18 +82,22 @@ router.get(
       return;
     }
 
-    if (!conversation.agent) {
-      res.status(500).json({ error: 'Conversation missing agent' });
-      return;
-    }
+    const uiAgent = conversation.agents.find(a => a.prototype.name === 'ui-agent');
+    const convAgent = conversation.agents.find(a => a.prototype.name === 'conversational-agent');
 
     res.json({
       conversation: {
         id: conversation.id,
         description: conversation.description,
-        topic: conversation.agent.topic,
+        topics: conversation.topics.map(t => t.name),
         user_id: conversation.userId,
-        agent_id: conversation.agentId,
+        ui_agent_id: uiAgent?.id,
+        conversational_agent_id: convAgent?.id,
+        agents: conversation.agents.map(a => ({
+          id: a.id,
+          type: a.prototype.name,
+          status: a.status,
+        })),
         created: conversation.created.toISOString(),
         updated: conversation.updated.toISOString(),
       },
