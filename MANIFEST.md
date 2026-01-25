@@ -6,6 +6,10 @@
 
 A Kafka-based orchestration platform for AI agents that enables dynamic, distributed agent ecosystems. Agents communicate asynchronously through Kafka topics, react to events, and collaborate on complex tasks. The platform supports self-organizing systems where agents can dynamically create new topics, spawn additional agents, and extend their capabilities through code generation. This creates a playground for exploring multi-agent coordination, distributed workflows, and emergent behaviors in agent-based systems.
 
+## Intent
+
+Self-adapting organizational framework. Kafkaorg runs as a business—agents handle specialized functions, spawn other agents as needed, and coordinate autonomously. Business in a box.
+
 ## North Star Goal
 
 Publish the kafkaorg-powered application to Bluesky as a long-form fiction generation service. Users can place orders, request services, and conduct transactions using "Astral Credits" (virtual currency, never real money). The kafkaorg platform provides the orchestration layer that enables agents to handle orders, coordinate fiction generation workflows, manage transactions, and deliver services—all through the distributed agent ecosystem running on Kafka.
