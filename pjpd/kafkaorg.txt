@@ -23,6 +23,11 @@ Status: ToDo
 ID: tools-list-y52j
 Develop a tools list for agents, organized by category
 ---
+Priority:   70
+Status: ToDo
+ID: kafka-fmt-6jvr
+Establish and enforce consistent Kafka record format across all agents using docmem to ensure reliable message exchange and interoperability
+---
 Priority:   60
 Status: ToDo
 ID: phase2-3ntk
@@ -57,6 +62,16 @@ Priority:   50
 Status: ToDo
 ID: bsky-post-ew4d
 Agent to post to Bluesky
+---
+Priority:   50
+Status: ToDo
+ID: docmem-meta-pzmv
+Add metadata description to docmem root node that documents available context types, names, and values to help the model understand the document structure and semantic organization
+---
+Priority:   50
+Status: ToDo
+ID: docmem-root-ga56
+Document/implement spec: docmem expand SHOULD show root node content (metadata), while serialize SHOULD NOT show root node content - this is intentional behavior difference
 ---
 Priority:   20
 Status: ToDo
