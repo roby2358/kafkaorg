@@ -71,6 +71,9 @@ pnpm prisma:seed
 # Run all tests once
 pnpm test
 
+# Run a single test file
+pnpm test -- docmem-expand
+
 # Run tests in watch mode
 pnpm test:watch
 ```
@@ -80,6 +83,7 @@ The bash command parser is generated from a PEG grammar. To regenerate after edi
 ```bash
 npx peggy --format es -o src/bash/command_parser.js src/bash/command.pegjs
 ```
+
 ## Specifications
 
 Technical specifications are maintained in `SPEC*.md` files:
@@ -99,36 +103,38 @@ Technical specifications are maintained in `SPEC*.md` files:
 - Keep language high-level and implementation-agnostic
 - Document error conditions and edge cases
 - All MUST requirements should be testable
-- 
+
 ## Architecture
 
 ### Core System Flow
 
 1. **Web Server (Express.js)** - HTTP API and WebSocket server for UI communication
-2. **Kafka Agents** - In-process consumers that listen to topics and process messages
-3. **PostgreSQL** - Stores users, agents, conversations, and message content (via docmem)
-4. **Kafka Topics** - Provide message sequencing and event ordering; content lives in docmem
-5. **WebSocket Handler** - Bidirectional communication between UI and agents
+2. **OrchestrationFramework** - Manages agent lifecycle: spawns agent pairs per conversation, tracks running instances, routes WebSocket attachments
+3. **Kafka Agents** - In-process consumers (UIAgent, ConversationalAgent) that listen on topics and process messages
+4. **PostgreSQL** - Stores users, agent prototypes/instances, conversations, topics, and message content (via docmem)
+5. **Kafka Topics** - Provide message sequencing and event ordering; content lives in docmem
+6. **WebSocket Handler** - Bidirectional communication between UI and agents
 
 ### Key Components
 
 **`src/index.ts`** - Application entry point. Initializes database, starts Express server, sets up WebSocket connections, and handles graceful shutdown.
 
-**`src/kafka/agent.ts`** - Kafka agent implementation. Each agent:
-- Owns a single Kafka topic with multiplexed conversations
-- Consumes from its own topic, filters by conversation_id and agent_id
-- Fetches message content from docmem (PostgreSQL)
-- Maintains conversation history caches per conversation
-- Uses OpenRouter API to generate responses
-- Executes tools via the interpreter
-- Produces responses back to the same topic
+**`src/orchestration/framework.ts`** - `OrchestrationFramework` singleton. Creates conversations (DB records + Kafka topics), spawns `UIAgent`+`ConversationalAgent` pairs, and manages their lifecycle. The `attachWebSocketToConversation` method wires an incoming WebSocket to the correct `UIAgent`.
+
+**`src/agents/`** - Agent implementations:
+- `BaseAgent.ts` - Abstract base class. Handles Kafka consumer management, topic subscription (with conversation_id and agent_id filtering), and message sending.
+- `UIAgent.ts` - Bridges WebSocket and Kafka. Receives user messages, writes to docmem, publishes to topic; consumes agent responses and streams to WebSocket.
+- `ConversationalAgent.ts` - LLM-backed agent. Consumes messages from its owned topic, builds conversation history from docmem, calls OpenRouter API, executes tools, and publishes responses.
 
 **`src/interpreter.ts`** - Tool execution layer. Processes agent responses, parses structured commands (speak, thought, action), and executes tools.
+
+**`src/commands/command-executor.ts`** - `CommandExecutor` class. Dispatches parsed bash-style commands to docmem or system tool implementations.
 
 **`src/docmem_tools/`** - Document memory system. Hierarchical tree structure for agent memory:
 - `docmem.ts` - Core node and tree operations
 - `docmem_postgres.ts` - PostgreSQL backend implementation
 - `docmem_tools.ts` - Tool implementations for docmem operations
+- `conversation_docmem.ts` - Conversation-scoped docmem helpers
 - `docmem_tools_prompt.ts` - System prompt for docmem tools
 - Implements optimistic locking with hash-based versioning
 - Nodes have context metadata (type, name, value) for semantic organization
@@ -139,12 +145,11 @@ Technical specifications are maintained in `SPEC*.md` files:
 - `interpreter.ts` - Command execution logic
 - Supports quoting, escaping, multiline strings (see SPEC_COMMAND_PARSER.md)
 
-**`src/websocket/conversation-handler.ts`** - WebSocket connection management. Routes user messages to Kafka topics and streams agent responses back to UI.
+**`src/websocket/conversation-handler.ts`** - WebSocket connection management. Routes user messages to Kafka topics and streams agent responses back to UI. User messages now go through WebSocket only — the old `api/user-message.ts` HTTP endpoint is removed.
 
 **`src/routes/`** - Express API routes:
-- `api/agents.ts` - Agent management (list, create, soft delete)
-- `api/conversation.ts` - Conversation CRUD operations
-- `api/user-message.ts` - Message submission endpoint
+- `api/agents.ts` - Agent instance listing (with live running status from OrchestrationFramework)
+- `api/conversation.ts` - Conversation creation (creates DB records + spawns agents)
 - `api/docmem.ts` - Docmem operations (TOML export/import)
 - `api/signin.ts`, `api/signup.ts` - User authentication
 
@@ -156,17 +161,22 @@ Technical specifications are maintained in `SPEC*.md` files:
 
 ### Database Schema
 
-**users** - User accounts (username is primary key, VARCHAR(32))
+**users** - User accounts (id is primary key, VARCHAR(32))
 
-**agents** - AI agent definitions:
-- Each agent owns a Kafka topic
-- `model` field specifies OpenRouter model (e.g., "anthropic/claude-haiku-4.5")
-- `active` boolean controls whether agent is running
-- Soft delete via `deleted` timestamp
+**agent_prototypes** - Agent type templates (e.g., "ui-agent", "conversational-agent"):
+- `system_prompt` defines the LLM prompt for that agent type
+- `model` specifies the OpenRouter model (e.g., "anthropic/claude-haiku-4.5")
+- Seeded via `db/seed_agent_prototypes.sql`
 
-**conversations** - Conversation sessions:
-- Links user + agent (via foreign keys)
-- Message content stored in docmem (PostgreSQL), Kafka provides sequencing
+**agent_instances** - Runtime agents spawned per conversation:
+- `id` format: `"ui-agent-{base62}"` or `"conversational-agent-{base62}"`
+- `status`: running / stopped / error
+
+**conversations** - Conversation sessions linking a user to spawned agents
+
+**topics** - Kafka topic records connecting two agent instances per conversation. The topic name equals the conversational agent's instance ID.
+
+**docmem_nodes** - Hierarchical document memory nodes (see SPEC_DOCMEM.md)
 
 ### Docmem System
 
@@ -207,6 +217,7 @@ Tool-specific prompts are maintained alongside their implementations:
 
 **Container Web Server:** http://localhost:8822
 **Local Dev Server:** http://localhost:8821
+**API Docs (Swagger):** http://localhost:8821/docs
 **PostgreSQL:** localhost:5432 (postgres/postgres/kafkaorg)
 **Kafka:** localhost:9092
 **WebSocket:** ws://localhost:8821/ws (or 8822 in container)
@@ -267,7 +278,7 @@ Key environment variables (see `.env`):
 ### Creating a New Agent Tool
 1. Add tool implementation to interpreter or dedicated module (e.g., `src/system_tools/`, `src/docmem_tools/`)
 2. Create or update tool-specific prompt file alongside implementation
-3. Register tool in the interpreter (`src/interpreter.ts`)
+3. Register tool in `src/commands/command-executor.ts` and/or `src/interpreter.ts`
 4. Test tool execution via agent conversation
 
 ### Modifying Database Schema
